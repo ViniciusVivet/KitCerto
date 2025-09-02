@@ -1,0 +1,9 @@
+using FluentValidation;
+
+public sealed class CreateProductValidator : AbstractValidator<CreateProductCmd> {
+    public CreateProductValidator() {
+        RuleFor(x => x.Name).NotEmpty().MaximumLength(120);
+        RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0);
+    }
+}

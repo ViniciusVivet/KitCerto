@@ -1,0 +1,50 @@
+{
+  "realm": "kitcerto",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "kitcerto-frontend",
+      "publicClient": true,
+      "redirectUris": ["http://localhost/*"],
+      "webOrigins": ["*"],
+      "standardFlowEnabled": true
+    },
+    {
+      "clientId": "kitcerto-api",
+      "publicClient": false,
+      "secret": "dev-api-secret",
+      "serviceAccountsEnabled": true,
+      "directAccessGrantsEnabled": true
+    }
+  ],
+  "roles": {
+    "realm": [
+      {"name": "admin"},
+      {"name": "manager"},
+      {"name": "user"}
+    ]
+  },
+  "users": [
+    {
+      "username": "admin@kitcerto",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "realmRoles": ["admin"]
+    },
+    {
+      "username": "manager@kitcerto",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "manager", "temporary": false }],
+      "realmRoles": ["manager"]
+    },
+    {
+      "username": "user@kitcerto",
+      "enabled": true,
+      "emailVerified": true,
+      "credentials": [{ "type": "password", "value": "user", "temporary": false }],
+      "realmRoles": ["user"]
+    }
+  ]
+}
