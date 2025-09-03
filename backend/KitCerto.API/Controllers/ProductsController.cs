@@ -4,6 +4,7 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
+using KitCerto.Application.Products.Queries.SearchProducts;
 using KitCerto.Application.Products.Create;
 using KitCerto.Application.Products.Queries.ListProducts;
 using KitCerto.Application.Products.Queries.GetProductById;
@@ -57,7 +58,7 @@ namespace KitCerto.API.Controllers
             {
                 page,
                 pageSize,
-                total = data.Count, // <- propriedade, sem precisar de System.Linq
+                total = data.Count,
                 items = data
             });
         }
@@ -122,6 +123,28 @@ namespace KitCerto.API.Controllers
         {
             var items = await _mediator.Send(new ListLowStockProductsQuery(threshold), ct);
             return Ok(new { threshold, count = items.Count, items });
+        }
+
+        /// <summary>Buscar produtos por nome e/ou categoria (paginado)</summary>
+        [HttpGet("search")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> Search(
+            [FromQuery] string? name,
+            [FromQuery] string? categoryId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken ct = default)
+        {
+            var result = await _mediator.Send(new SearchProductsQuery(page, pageSize, name, categoryId), ct);
+
+            return Ok(new
+            {
+                page = result.Page,
+                pageSize = result.PageSize,
+                total = result.Total,
+                items = result.Items
+            });
         }
     }
 }

@@ -76,5 +76,83 @@ namespace KitCerto.Infrastructure.Repositories
             var filter = Builders<Product>.Filter.Lt(x => x.Stock, threshold);
             return await _col.Find(filter).ToListAsync(ct);
         }
+
+        public async Task<IReadOnlyList<Product>> SearchAsync(string? name, string? categoryId, int page, int pageSize, CancellationToken ct)
+        {
+            var filter = Builders<Product>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                // contém no nome (case-insensitive)
+                var nameFilter = Builders<Product>.Filter.Regex(x => x.Name, new MongoDB.Bson.BsonRegularExpression(name, "i"));
+                filter = Builders<Product>.Filter.And(filter, nameFilter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(categoryId))
+            {
+                var catFilter = Builders<Product>.Filter.Eq(x => x.CategoryId, categoryId);
+                filter = Builders<Product>.Filter.And(filter, catFilter);
+            }
+
+            var skip = (page - 1) * pageSize;
+
+            var items = await _col.Find(filter)
+                                  .Skip(skip)
+                                  .Limit(pageSize)
+                                  .ToListAsync(ct);
+
+            return items;
+        }
+
+        public async Task<long> CountAsync(string? name, string? categoryId, CancellationToken ct)
+        {
+            var filter = Builders<Product>.Filter.Empty;
+
+            if (!string.IsNullOrWhiteSpace(name))
+            {
+                var nameFilter = Builders<Product>.Filter.Regex(x => x.Name, new MongoDB.Bson.BsonRegularExpression(name, "i"));
+                filter = Builders<Product>.Filter.And(filter, nameFilter);
+            }
+
+            if (!string.IsNullOrWhiteSpace(categoryId))
+            {
+                var catFilter = Builders<Product>.Filter.Eq(x => x.CategoryId, categoryId);
+                filter = Builders<Product>.Filter.And(filter, catFilter);
+            }
+
+            return await _col.CountDocumentsAsync(filter, cancellationToken: ct);
+        }
+
+        public async Task<int> LowStockCountAsync(int threshold, CancellationToken ct)
+        {
+            var filter = Builders<Product>.Filter.Lt(x => x.Stock, threshold);
+            var count = await _col.CountDocumentsAsync(filter, cancellationToken: ct);
+            return (int)count;
+        }
+
+        public async Task<decimal> TotalStockValueAsync(CancellationToken ct)
+        {
+            // soma (price * stock)
+            var pipeline = _col.Aggregate()
+                .Project(p => new { Value = p.Price * p.Stock })
+                .Group(x => 1, g => new { Total = g.Sum(x => x.Value) });
+
+            var result = await pipeline.FirstOrDefaultAsync(ct);
+            return result?.Total ?? 0m;
+        }
+
+        public async Task<IReadOnlyList<CategoryCount>> CountByCategoryAsync(CancellationToken ct)
+        {
+            var pipeline = _col.Aggregate()
+                .Group(p => p.CategoryId, g => new { CategoryId = g.Key, Count = g.Count() });
+
+            var list = await pipeline.ToListAsync(ct);
+
+            return list.Select(x => new CategoryCount
+            {
+                CategoryId = x.CategoryId,
+                Count = x.Count
+            }).ToList();
+        }
     }
 }

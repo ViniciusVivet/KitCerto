@@ -16,5 +16,18 @@ namespace KitCerto.Domain.Repositories
         Task DeleteAsync(string id, CancellationToken ct);
         Task UpdateStockAsync(string id, int stock, CancellationToken ct);
         Task<IReadOnlyList<Product>> ListLowStockAsync(int threshold, CancellationToken ct);
+
+        Task<IReadOnlyList<Product>> SearchAsync(string? name, string? categoryId, int page, int pageSize, CancellationToken ct);
+        Task<long> CountAsync(string? name, string? categoryId, CancellationToken ct);
+        Task<int> LowStockCountAsync(int threshold, CancellationToken ct);
+        Task<decimal> TotalStockValueAsync(CancellationToken ct);
+        Task<IReadOnlyList<CategoryCount>> CountByCategoryAsync(CancellationToken ct);
     }
+    
+    public sealed class CategoryCount
+    {
+        public string CategoryId { get; set; } = "";
+        public int Count { get; set; }
+    }
+
 }
