@@ -1,19 +1,19 @@
+using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 
-namespace KitCerto.Infrastructure.Data;
-
-public sealed class MongoContext
+namespace KitCerto.Infrastructure.Data
 {
-    // O repo espera "Db", então vamos expor com esse nome.
-    public IMongoDatabase Db { get; }
-
-    public MongoContext(string connString)
+    public sealed class MongoContext
     {
-        // Ex.: "mongodb://localhost:27017/kitcerto"
-        var url = new MongoUrl(connString);
-        var client = new MongoClient(url);
+        public IMongoDatabase Db { get; }
 
-        var dbName = url.DatabaseName ?? "kitcerto"; // fallback
-        Db = client.GetDatabase(dbName);
+        public MongoContext(IMongoClient client, IConfiguration cfg)
+        {
+            var dbName = cfg["Database:Name"];
+            if (string.IsNullOrWhiteSpace(dbName))
+                dbName = "kitcerto";
+
+            Db = client.GetDatabase(dbName);
+        }
     }
 }

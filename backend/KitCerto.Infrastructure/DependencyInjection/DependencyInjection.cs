@@ -1,18 +1,36 @@
-using KitCerto.Domain.Repositories;
-using KitCerto.Infrastructure.Data;
-using KitCerto.Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using MongoDB.Driver;
 
-namespace KitCerto.Infrastructure;
+using KitCerto.Infrastructure.Data;           // MongoContext
+using KitCerto.Infrastructure.Repositories;  // MongoProductsRepo, MongoCategoriesRepo
+using KitCerto.Domain.Repositories;          // IProductsRepo, ICategoriesRepo
 
-public static class DependencyInjection
+namespace KitCerto.Infrastructure.DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
+    public static class DependencyInjection
     {
-        var conn = cfg.GetConnectionString("Mongo")!;
-        services.AddSingleton(new MongoContext(conn));
-        services.AddScoped<IProductsRepo, MongoProductsRepo>();
-        return services;
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration cfg)
+        {
+            // MongoClient singleton
+            services.AddSingleton<IMongoClient>(sp =>
+            {
+                var cs = cfg.GetConnectionString("Mongo")!;
+                return new MongoClient(cs);
+            });
+
+            // MongoContext singleton (reutiliza o IMongoClient)
+            services.AddSingleton(sp =>
+            {
+                var client = sp.GetRequiredService<IMongoClient>();
+                return new MongoContext(client, cfg);
+            });
+
+            // Repos
+            services.AddScoped<IProductsRepo,    MongoProductsRepo>();
+            services.AddScoped<ICategoriesRepo,  MongoCategoriesRepo>();
+
+            return services;
+        }
     }
 }

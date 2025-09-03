@@ -2,6 +2,7 @@
 using Microsoft.OpenApi.Models;
 using MediatR;
 using KitCerto.Application.Products.Create;
+using KitCerto.Infrastructure.DependencyInjection;
 using KitCerto.Infrastructure;
 using KitCerto.API.Swagger;
 
