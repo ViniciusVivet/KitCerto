@@ -1,28 +1,49 @@
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using MediatR;
+using KitCerto.Application.Products.Create;
+using KitCerto.Infrastructure;
+using KitCerto.API.Swagger; // <— extensões do Swagger (nos arquivos que criamos)
+
 var builder = WebApplication.CreateBuilder(args);
 
+// Controllers
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
+// Swagger (modular)
+builder.Services.AddSwaggerDocs();
+
+// Auth (Keycloak)
 var authority = builder.Configuration["Auth:Authority"];
 var audience  = builder.Configuration["Auth:Audience"];
 
-builder.Services.AddAuthentication("Bearer")
-  .AddJwtBearer("Bearer", opt => {
-    opt.Authority = authority; // http://keycloak:8080/realms/kitcerto (em docker)
-    opt.Audience = audience;   // kitcerto-api
-    opt.RequireHttpsMetadata = false;
-  });
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
+    {
+        opt.Authority = authority;
+        opt.Audience = audience;
+        opt.RequireHttpsMetadata = false; // dev
+    });
 
-builder.Services.AddHealthChecks()
-  .AddMongoDb(builder.Configuration.GetConnectionString("Mongo")!);
+builder.Services.AddAuthorization();
+
+// MediatR — registra handlers da Application
+builder.Services.AddMediatR(cfg =>
+    cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly));
+
+// Infrastructure (MongoContext + Repo)
+builder.Services.AddInfrastructure(builder.Configuration);
+
+// HealthChecks
+builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+// Swagger (modular)
+app.UseSwaggerDocs();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapHealthChecks("/health");
 app.MapControllers();
 

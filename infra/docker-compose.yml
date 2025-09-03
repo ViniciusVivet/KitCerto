@@ -39,7 +39,7 @@ services:
   api:
     build:
       context: ../backend
-      dockerfile: Dockerfile
+      dockerfile: KitCerto.API/Dockerfile
     container_name: kitcerto-api
     depends_on: [mongo, keycloak]
     environment:

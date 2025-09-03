@@ -1,6 +1,8 @@
-using KitCerto.Domain;
+using KitCerto.Domain.Products;
 
-public interface IProductsRepo {
+namespace KitCerto.Domain.Repositories;
+
+public interface IProductsRepo
+{
     Task<string> CreateAsync(Product p, CancellationToken ct);
-    // (restante: update/delete/get/list)
 }

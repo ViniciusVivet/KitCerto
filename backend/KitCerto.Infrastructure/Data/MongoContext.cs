@@ -1,15 +1,19 @@
 using MongoDB.Driver;
-using KitCerto.Domain;
 
-public interface IProductsRepo {
-  Task<string> CreateAsync(Product p, CancellationToken ct);
-  // (restante: update/delete/get/list)
-}
+namespace KitCerto.Infrastructure.Data;
 
-public sealed class MongoContext {
-  public IMongoDatabase Db { get; }
-  public MongoContext(string conn) {
-    var client = new MongoClient(conn);
-    Db = client.GetDatabase("kitcerto");
-  }
+public sealed class MongoContext
+{
+    // O repo espera "Db", então vamos expor com esse nome.
+    public IMongoDatabase Db { get; }
+
+    public MongoContext(string connString)
+    {
+        // Ex.: "mongodb://localhost:27017/kitcerto"
+        var url = new MongoUrl(connString);
+        var client = new MongoClient(url);
+
+        var dbName = url.DatabaseName ?? "kitcerto"; // fallback
+        Db = client.GetDatabase(dbName);
+    }
 }

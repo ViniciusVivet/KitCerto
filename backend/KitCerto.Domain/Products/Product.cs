@@ -1,4 +1,4 @@
-namespace Kitcerto.Domain.Products;
+namespace KitCerto.Domain.Products;
 
 public sealed class Product
 {
@@ -10,10 +10,10 @@ public sealed class Product
     public int Quantity { get; private set; }
     public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
 
-    public Product(string name, string desc, decimal price, string categoryId, int quantity)
+    public Product(string name, string description, decimal price, string categoryId, int quantity)
     {
         Name = name;
-        Description = desc;
+        Description = description;
         Price = price;
         CategoryId = categoryId;
         Quantity = quantity;
