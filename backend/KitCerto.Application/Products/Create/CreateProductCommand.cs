@@ -7,5 +7,6 @@ public sealed record CreateProductCmd(
     string Description,
     decimal Price,
     string CategoryId,
-    int Quantity
+    int Quantity,
+    int Stock
 ) : IRequest<string>;

@@ -11,7 +11,14 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCmd, str
 
     public async Task<string> Handle(CreateProductCmd req, CancellationToken ct)
     {
-        var product = new Product(req.Name, req.Description, req.Price, req.CategoryId, req.Quantity);
+        var product = new Product(
+            req.Name,
+            req.Description,
+            req.Price,
+            req.CategoryId,
+            req.Quantity,
+            req.Stock
+        );
         return await _repo.CreateAsync(product, ct);
     }
 }

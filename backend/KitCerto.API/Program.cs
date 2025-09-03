@@ -1,22 +1,23 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.OpenApi.Models;
 using MediatR;
 using KitCerto.Application.Products.Create;
 using KitCerto.Infrastructure;
-using KitCerto.API.Swagger; // <— extensões do Swagger (nos arquivos que criamos)
+using KitCerto.API.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Controllers
+// Controllers + Swagger
 builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGenWithAuthAndProblemDetails(); // nosso extension de Swagger
 
-// Swagger (modular)
-builder.Services.AddSwaggerDocs();
-
-// Auth (Keycloak)
+// Auth (Keycloak) — por enquanto não exigido nos endpoints
 var authority = builder.Configuration["Auth:Authority"];
 var audience  = builder.Configuration["Auth:Audience"];
 
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+builder.Services
+    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opt =>
     {
         opt.Authority = authority;
@@ -30,7 +31,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddMediatR(cfg =>
     cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly));
 
-// Infrastructure (MongoContext + Repo)
+// Infra (MongoContext + Repo)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // HealthChecks
@@ -38,8 +39,9 @@ builder.Services.AddHealthChecks();
 
 var app = builder.Build();
 
-// Swagger (modular)
-app.UseSwaggerDocs();
+// Swagger UI
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
