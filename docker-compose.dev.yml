@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  mongo:
+    image: mongo:6
+    container_name: kitcerto_mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: kitcerto_keycloak
+    command: start-dev
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      # você pode importar um realm depois; por ora criaremos manualmente
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mongo
+
+  api:
+    build:
+      context: ./backend/KitCerto.API
+      dockerfile: Dockerfile
+    container_name: kitcerto_api
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5000
+      ConnectionStrings__Mongo: ${MONGO_CONN:-mongodb://mongo:27017/kitcerto}
+      Auth__Authority: ${AUTH_AUTHORITY:-http://keycloak:8080/realms/kitcerto}
+      Auth__Audience: ${AUTH_AUDIENCE:-kitcerto-api}
+      # opcional: ASPNETCORE_ENVIRONMENT=Docker
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongo
+      - keycloak
+
+volumes:
+  mongo_data:

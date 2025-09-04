@@ -14,20 +14,26 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers + Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-
-// SUA extension pede um parâmetro `cfg` (Action<SwaggerGenOptions>).
-// Passamos um lambda vazio para satisfazer a assinatura.
 builder.Services.AddSwaggerGenWithAuthAndProblemDetails(builder.Configuration);
 
-// CORS (Next local e via Nginx)
+// CORS (origens lidas do appsettings: Cors:Origins)
+var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
     {
-        policy.WithOrigins("http://localhost:3000", "http://localhost")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials();
+        if (corsOrigins.Length > 0)
+        {
+            policy.WithOrigins(corsOrigins)
+                  .AllowAnyHeader()
+                  .AllowAnyMethod()
+                  .AllowCredentials();
+        }
+        else
+        {
+            // fallback seguro para DEV; não usar em prod
+            policy.AllowAnyHeader().AllowAnyMethod();
+        }
     });
 });
 
@@ -68,9 +74,7 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // HealthChecks (Mongo)
 var cs = builder.Configuration.GetConnectionString("Mongo")
          ?? throw new InvalidOperationException("Missing connection string 'Mongo'");
-
 builder.Services.AddHealthChecks()
-    // precisa do pacote AspNetCore.HealthChecks.MongoDb
     .AddMongoDb(sp => new MongoClient(cs), name: "mongo");
 
 // Serilog
