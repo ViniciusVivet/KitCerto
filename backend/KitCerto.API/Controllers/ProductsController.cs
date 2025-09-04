@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,16 +25,7 @@ namespace KitCerto.API.Controllers
         public ProductsController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>Criar um produto</summary>
-        /// <remarks>
-        /// Exemplo:
-        /// {
-        ///   "name":"Colar de ouro",
-        ///   "description":"Colar 18k com pingente",
-        ///   "price":1200.50,
-        ///   "stock":10,
-        ///   "categoryId":"bijouterias"
-        /// }
-        /// </remarks>
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -86,6 +78,7 @@ namespace KitCerto.API.Controllers
         }
 
         /// <summary>Atualizar um produto</summary>
+        [Authorize(Roles = "admin")]
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -97,6 +90,7 @@ namespace KitCerto.API.Controllers
         }
 
         /// <summary>Excluir um produto</summary>
+        [Authorize(Roles = "admin")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete([FromRoute] string id, CancellationToken ct)
@@ -106,6 +100,7 @@ namespace KitCerto.API.Controllers
         }
 
         /// <summary>Atualizar apenas o estoque</summary>
+        [Authorize(Roles = "admin")]
         [HttpPatch("{id}/stock")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -137,7 +132,6 @@ namespace KitCerto.API.Controllers
             CancellationToken ct = default)
         {
             var result = await _mediator.Send(new SearchProductsQuery(page, pageSize, name, categoryId), ct);
-
             return Ok(new
             {
                 page = result.Page,

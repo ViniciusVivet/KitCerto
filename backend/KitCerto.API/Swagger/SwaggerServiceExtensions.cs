@@ -1,17 +1,16 @@
-using System;
-using KitCerto.API.Swagger.Filters;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi.Models;
-using Swashbuckle.AspNetCore.SwaggerGen;
+using KitCerto.API.Swagger.Filters;
 
 namespace KitCerto.API.Swagger
 {
     public static class SwaggerServiceExtensions
     {
-        /// <summary>
-        /// Registra o Swagger com Bearer Auth e o filtro que adiciona ProblemDetails nos responses.
-        /// </summary>
-        public static IServiceCollection AddSwaggerGenWithAuthAndProblemDetails(this IServiceCollection services)
+        // Agora recebemos IConfiguration
+        public static IServiceCollection AddSwaggerGenWithAuthAndProblemDetails(
+            this IServiceCollection services,
+            IConfiguration cfg)
         {
             services.AddSwaggerGen(c =>
             {
@@ -19,31 +18,67 @@ namespace KitCerto.API.Swagger
                 {
                     Title = "KitCerto API",
                     Version = "v1",
-                    Description = "API do e-commerce KitCerto (Clean Arch + CQRS)."
+                    Description = "API de gestão de produtos (Clean Architecture + CQRS + Mongo)."
                 });
 
-                var scheme = new OpenApiSecurityScheme
+                // Bearer simples (para testes rápidos)
+                var bearer = new OpenApiSecurityScheme
                 {
                     Name = "Authorization",
                     Type = SecuritySchemeType.Http,
                     Scheme = "bearer",
                     BearerFormat = "JWT",
                     In = ParameterLocation.Header,
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
+                    Description = "Insira o token JWT no formato: Bearer {token}"
                 };
+                c.AddSecurityDefinition("Bearer", bearer);
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    { bearer, Array.Empty<string>() }
+                });
 
-                c.AddSecurityDefinition("Bearer", scheme);
-                c.AddSecurityRequirement(new OpenApiSecurityRequirement { { scheme, Array.Empty<string>() } });
+                // OAuth2 (Keycloak) – Authorization Code + PKCE
+                var authority = cfg["Auth:Authority"]?.TrimEnd('/');
+                var realm     = cfg["Auth:Realm"];
+                var audience  = cfg["Auth:Audience"];
 
-                // nosso filtro para exibir application/problem+json quando o controller declara ProblemDetails
+                if (!string.IsNullOrWhiteSpace(authority) && !string.IsNullOrWhiteSpace(realm))
+                {
+                    c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+                    {
+                        Type = SecuritySchemeType.OAuth2,
+                        Flows = new OpenApiOAuthFlows
+                        {
+                            AuthorizationCode = new OpenApiOAuthFlow
+                            {
+                                AuthorizationUrl = new Uri($"{authority}/realms/{realm}/protocol/openid-connect/auth"),
+                                TokenUrl         = new Uri($"{authority}/realms/{realm}/protocol/openid-connect/token"),
+                                Scopes = new Dictionary<string,string>
+                                {
+                                    { audience ?? "api", "Acesso à API KitCerto" }
+                                }
+                            }
+                        }
+                    });
+
+                    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                    {
+                        {
+                            new OpenApiSecurityScheme
+                            {
+                                Reference = new OpenApiReference
+                                {
+                                    Type = ReferenceType.SecurityScheme,
+                                    Id = "oauth2"
+                                }
+                            },
+                            Array.Empty<string>()
+                        }
+                    });
+                }
+
+                // ProblemDetails padrão para 4xx/5xx
                 c.OperationFilter<AddProblemDetailsResponsesOperationFilter>();
-
-                // Deixa os tipos não anuláveis visíveis corretamente no schema
-                c.SupportNonNullableReferenceTypes();
             });
 
             return services;

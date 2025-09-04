@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+
 using KitCerto.Application.Categories.Create;
 using KitCerto.Application.Categories.Queries.ListCategories;
 using KitCerto.Application.Categories.Queries.GetCategoryById;
@@ -17,8 +20,14 @@ namespace KitCerto.API.Controllers
         public CategoriesController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>Criar uma categoria</summary>
-        /// <param name="cmd">Payload com nome e descrição</param>
-        /// <param name="ct">Cancellation token</param>
+        /// <remarks>
+        /// Exemplo de payload:
+        /// {
+        ///   "name": "Anéis",
+        ///   "description": "Categoria para anéis de prata e ouro"
+        /// }
+        /// </remarks>
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -35,24 +44,41 @@ namespace KitCerto.API.Controllers
         /// <param name="ct">Cancellation token</param>
         [HttpGet]
         [ProducesResponseType(typeof(object[]), StatusCodes.Status200OK)]
-        public async Task<IActionResult> List([FromQuery] int page = 1, [FromQuery] int pageSize = 20, CancellationToken ct = default)
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> List(
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 20,
+            CancellationToken ct = default)
         {
             var data = await _mediator.Send(new ListCategoriesQuery(page, pageSize), ct);
-            return Ok(new { page, pageSize, total = data.Count, items = data });
+            return Ok(new
+            {
+                page,
+                pageSize,
+                total = data.Count,
+                items = data
+            });
         }
 
-        /// <summary>Obter categoria por id</summary>
-        /// <param name="id">Identificador</param>
+        /// <summary>Obter categoria por ID</summary>
+        /// <param name="id">Identificador único da categoria</param>
         /// <param name="ct">Cancellation token</param>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetById([FromRoute] string id, CancellationToken ct)
         {
             var cat = await _mediator.Send(new GetCategoryByIdQuery(id), ct);
-            return cat is null
-                ? NotFound(new { message = "Categoria não encontrada", id })
-                : Ok(cat);
+            if (cat is null)
+                return NotFound(new { message = "Categoria não encontrada", id });
+
+            return Ok(new
+            {
+                id = cat.Id,
+                name = cat.Name,
+                description = cat.Description
+            });
         }
     }
 }
