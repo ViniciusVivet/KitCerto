@@ -1,18 +1,29 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace KitCerto.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public sealed class AuthController : ControllerBase
+    [Route("api/auth")]
+    public class AuthController : ControllerBase
     {
-        [Authorize]
         [HttpGet("ping")]
+        [Authorize] // qualquer usuário autenticado
         public IActionResult Ping()
         {
-            var claims = User.Claims.Select(c => new { c.Type, c.Value });
-            return Ok(new { authenticated = User.Identity?.IsAuthenticated ?? false, claims });
+            var name = User.Identity?.Name ?? "(sem name)";
+            var roles = User.Claims
+                            .Where(c => c.Type.EndsWith("role"))
+                            .Select(c => c.Value)
+                            .ToArray();
+
+            return Ok(new
+            {
+                ok = true,
+                user = name,
+                roles
+            });
         }
     }
 }

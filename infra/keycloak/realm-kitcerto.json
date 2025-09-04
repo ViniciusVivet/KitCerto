@@ -1,49 +1,49 @@
 {
   "realm": "kitcerto",
   "enabled": true,
-  "clients": [
-    {
-      "clientId": "kitcerto-frontend",
-      "publicClient": true,
-      "redirectUris": ["http://localhost/*"],
-      "webOrigins": ["*"],
-      "standardFlowEnabled": true
-    },
-    {
-      "clientId": "kitcerto-api",
-      "publicClient": false,
-      "secret": "dev-api-secret",
-      "serviceAccountsEnabled": true,
-      "directAccessGrantsEnabled": true
-    }
-  ],
+  "registrationAllowed": false,
+  "loginWithEmailAllowed": true,
+  "resetPasswordAllowed": true,
   "roles": {
     "realm": [
-      {"name": "admin"},
-      {"name": "manager"},
-      {"name": "user"}
+      { "name": "admin", "description": "Administrador" },
+      { "name": "user",  "description": "Usuário padrão" }
     ]
   },
+  "clients": [
+    {
+      "clientId": "kitcerto-api",
+      "name": "KitCerto API",
+      "publicClient": true,
+      "directAccessGrantsEnabled": true,
+      "standardFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "implicitFlowEnabled": false,
+      "bearerOnly": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "3600"
+      },
+      "defaultClientScopes": ["profile", "email"],
+      "redirectUris": ["*"],
+      "webOrigins": ["*"]
+    }
+  ],
   "users": [
     {
-      "username": "admin@kitcerto",
+      "username": "admin@kitcerto.dev",
+      "email": "admin@kitcerto.dev",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "admin", "temporary": false }],
+      "credentials": [{ "type": "password", "value": "Admin@123", "temporary": false }],
       "realmRoles": ["admin"]
     },
     {
-      "username": "manager@kitcerto",
+      "username": "joao@kitcerto.dev",
+      "email": "joao@kitcerto.dev",
       "enabled": true,
       "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "manager", "temporary": false }],
-      "realmRoles": ["manager"]
-    },
-    {
-      "username": "user@kitcerto",
-      "enabled": true,
-      "emailVerified": true,
-      "credentials": [{ "type": "password", "value": "user", "temporary": false }],
+      "credentials": [{ "type": "password", "value": "User@123", "temporary": false }],
       "realmRoles": ["user"]
     }
   ]

@@ -1,39 +1,23 @@
-version: "3.9"
-
 services:
-  mongo:
-    image: mongo:6
-    container_name: kitcerto-mongo
-    ports:
-      - "27017:27017"
+  keycloak:
+    container_name: kitcerto-keycloak
+    image: quay.io/keycloak/keycloak:24.0
+    command:
+      - start-dev
+      - --http-port=8080
+      - --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_PROXY: edge
+      KC_LOG_LEVEL: info
     volumes:
-      - mongo_data:/data/db
-    environment:
-      MONGO_INITDB_DATABASE: kitcerto
-
-  api:
-    build:
-      context: ./backend
-      dockerfile: ./KitCerto.API/Dockerfile
-    container_name: kitcerto-api
-    depends_on:
-      - mongo
-    environment:
-      ASPNETCORE_URLS: http://+:5000
-      ASPNETCORE_ENVIRONMENT: Docker
-      MONGO_CONN: ${MONGO_CONN}
+      - ./keycloak/realm-kitcerto.json:/opt/keycloak/data/import/realm-kitcerto.json:ro
     ports:
-      - "5000:5000"
-
-  web:
-    build:
-      context: ./frontend
-      dockerfile: ./Dockerfile
-    container_name: kitcerto-web
-    environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:5000
-    ports:
-      - "3000:3000"
-
-volumes:
-  mongo_data:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
