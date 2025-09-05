@@ -1,6 +1,6 @@
 # KitCerto API (Backend)
 
-API .NET 9 seguindo Clean Architecture + CQRS/MediatR.
+API **.NET 9** seguindo **Clean Architecture + CQRS/MediatR**, com **MongoDB** e **Keycloak (OIDC/JWT)**.
 
 ## Requisitos
 - .NET 9 SDK
@@ -28,7 +28,7 @@ ASPNETCORE_URLS=http://localhost:5000
 ConnectionStrings__Mongo=mongodb://localhost:27017
 Mongo__DatabaseName=kitcerto
 
-# Auth (Keycloak) - placeholder
+# Auth (Keycloak)
 Auth__Authority=http://localhost:8080/realms/kitcerto
 Auth__Audience=kitcerto-api
 ```
@@ -41,4 +41,10 @@ dotnet add package Serilog.AspNetCore
 dotnet add package Serilog.Sinks.Console
 dotnet restore
 ```
+
+## Endpoints resumidos
+- Categorias: `GET/POST /api/categories`
+- Produtos: `GET /api/products`, `POST/PUT/DELETE /api/products/{id}`, `PUT /api/products/{id}/stock`
+- Dashboard: `GET /api/dashboard/overview`
+- Auth util: `GET /api/auth/ping`
 

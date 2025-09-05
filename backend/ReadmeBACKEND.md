@@ -1,13 +1,14 @@
 # KitCerto Backend
 
-API do e-commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycloak** e **CQRS + Clean Architecture**.
+API do e‑commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycloak (OIDC/JWT)** e **CQRS + Clean Architecture**.
 
 ---
 
-## 🔧 Pré-requisitos
+## 🔧 Pré‑requisitos
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/)  
-- [Docker](https://www.docker.com/) (para MongoDB e Keycloak)  
+- [.NET 9 SDK](https://dotnet.microsoft.com/)
+- [Docker Desktop](https://www.docker.com/) (MongoDB + Keycloak)
+- (Frontend local) **Node 20 LTS**
 
 ---
 
@@ -18,7 +19,7 @@ API do e-commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycl
    cp infra/.env.example infra/.env
    ```
 
-2. Suba a infraestrutura (MongoDB + Keycloak + Nginx):
+2. Suba a infraestrutura (MongoDB + Keycloak):
    ```bash
    docker compose up -d
    ```
@@ -37,7 +38,9 @@ API do e-commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycl
 
 5. Acesse:
    - Swagger: http://localhost:5000/swagger
-   - HealthCheck: http://localhost:5000/health
+   - Health: http://localhost:5000/health
+
+> Frontend (mock‑first) roda à parte por enquanto. Veja `frontend/ReadmeFRONTEND.md`.
 
 ---
 
@@ -48,6 +51,12 @@ API do e-commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycl
 - KitCerto.Domain → Entidades puras + Interfaces
 - KitCerto.Infrastructure → MongoDB (Context + Repositórios)
 
+Endpoints principais:
+- Categorias: `GET/POST /api/categories`
+- Produtos: `GET /api/products`, `POST/PUT/DELETE /api/products/{id}`, `PUT /api/products/{id}/stock`
+- Dashboard: `GET /api/dashboard/overview`
+- Auth util: `GET /api/auth/ping`
+
 ---
 
 ## 🛠️ Comandos úteis
@@ -56,6 +65,17 @@ API do e-commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Keycl
 - dotnet build → compila o projeto  
 - dotnet run --project KitCerto.API → roda a API  
 - docker compose up -d → sobe infraestrutura  
+
+## 🔐 Autenticação
+- Keycloak configurado (realm `kitcerto`, client `kitcerto-api`).
+- Roles via JWT mapeadas para claims .NET (`ClaimTypes.Role`).
+- Usuários de teste: `admin@kitcerto.dev` (admin), `joao@kitcerto.dev` (user).
+
+## ⚙️ Operação
+- ProblemDetails (middleware): disponível; habilitar no pipeline se desejar respostas padronizadas.
+- Rate limiting: janela fixa (100 req/min)
+- Health checks: `/health` (Mongo)
+- Logs: Serilog (console)
 
 ---
 

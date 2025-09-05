@@ -1,13 +1,13 @@
 # KitCerto Frontend
 
-Aplicação web construída em **Next.js 14 + TypeScript + TailwindCSS**.  
-Interface do e-commerce KitCerto, conectada à API backend.
+Aplicação web do e-commerce **KitCerto**, construída em **Next.js 14 + TypeScript + Tailwind 3 + shadcn/ui**.  
+Neste momento está operando com dados **mockados** (sem depender da API/Keycloak) para viabilizar a validação visual/UX do fluxo completo de compra.
 
 ---
 
 ## 🔧 Pré-requisitos
 
-- [Node.js](https://nodejs.org/) (>= 18)
+- **Node 20 LTS** (recomendado; evite Node 22 no dev)
 - npm, yarn, pnpm ou bun (à sua escolha)
 
 ---
@@ -38,9 +38,15 @@ Interface do e-commerce KitCerto, conectada à API backend.
 ## 📂 Estrutura principal
 
 - app/ → Páginas e rotas (App Router)
-- components/ → Componentes reutilizáveis
-- styles/ → Estilos globais
-- public/ → Arquivos estáticos (imagens, ícones)
+- components/
+  - layout/ → Header, etc.
+  - ui/ → base do shadcn/ui (button, input, sheet, dialog…)
+  - product/ → Quick View e componentes de produto
+  - checkout/ → Checkout Modal
+  - auth/ → Modais mock de login/registro
+- context/ → `cart`, `favorites`, `toast`
+- lib/ → `mock.ts` (produtos, categorias, dashboard, pedidos)
+- public/ → estáticos
 
 ---
 
@@ -50,6 +56,36 @@ Interface do e-commerce KitCerto, conectada à API backend.
 - npm run build → cria versão de produção
 - npm start → roda build de produção
 - npm run lint → executa ESLint
+
+## ✨ Funcionalidades (mock)
+
+- Home
+  - Hero (banners), carrosséis (Mais vendidos/Novidades)
+  - Filtros: lateral fixa (desktop) e drawer (mobile)
+  - Cards com glow, favoritos (localStorage) e Quick View (variações, quantidade, galeria)
+- Carrinho
+  - Drawer com +/−/remover, subtotal, toast de ações e persistência local
+  - Badge com quantidade no ícone
+- Checkout
+  - Fluxo em passos (endereço/frete/pagamento/revisão) com cupom (ex.: `KIT10`)
+  - Toasts de confirmação
+- Dashboard (mock)
+  - KPIs, produtos/valor por categoria, distribuição por preço
+  - Mais vendidos e pesquisa de vendidos
+- Meus pedidos (mock)
+  - Filtros por status/período, busca, detalhes em modal
+  - “Repetir compra” (joga itens no carrinho)
+
+## 🔌 Integração futura (quando habilitar API/Keycloak)
+
+- Substituir hooks mock (`lib/mock.ts`) por serviços HTTP (TanStack Query)
+- Autenticação com Keycloak (login/logout, proteção de rotas e guards de ações)
+- Nginx/Compose: adicionar serviço `frontend` e roteamento `/api` → API
+
+## 📝 Notas
+
+- O projeto usa **Tailwind 3** (com mapeamento de tokens CSS) e **shadcn/ui**.
+- Para ambiente Windows, use **Node 20 LTS** para evitar instabilidades do dev overlay.
 
 ---
 
