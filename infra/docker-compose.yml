@@ -1,23 +1,72 @@
 services:
-  keycloak:
-    container_name: kitcerto-keycloak
-    image: quay.io/keycloak/keycloak:24.0
-    command:
-      - start-dev
-      - --http-port=8080
-      - --import-realm
+  mongo:
+    image: mongo:6
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  mongo-express:
+    image: mongo-express:1.0.2-20
     environment:
-      KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: admin
+      ME_CONFIG_MONGODB_URL: "mongodb://mongo:27017"
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongo:
+        condition: service_started
+    restart: unless-stopped
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command: ["start-dev","--http-port=8080","--import-realm"]
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
       KC_PROXY: edge
       KC_LOG_LEVEL: info
     volumes:
       - ./keycloak/realm-kitcerto.json:/opt/keycloak/data/import/realm-kitcerto.json:ro
     ports:
       - "8080:8080"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health/ready || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 20
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL","curl -fsS http://localhost:8080/health/ready || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 60
+
+  api:
+    build:
+      context: ..
+      dockerfile: backend/KitCerto.API/Dockerfile
+    depends_on:
+      mongo:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Docker"
+      ASPNETCORE_URLS: "http://0.0.0.0:5000"
+      ConnectionStrings__Mongo: "mongodb://mongo:27017/kitcerto"
+      Auth__Authority: "http://keycloak:8080/realms/kitcerto"
+      Auth__Audience: "kitcerto-api"
+      Cors__Origins: "http://localhost:3000;http://localhost"
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL","curl -fsS http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+# (bloco necessário para volumes nomeados)
+volumes:
+  mongo_data:
