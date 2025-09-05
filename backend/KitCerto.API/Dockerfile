@@ -1,19 +1,29 @@
-# 1) Build
+# ===== build =====
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-COPY ./KitCerto.Domain ./KitCerto.Domain
-COPY ./KitCerto.Application ./KitCerto.Application
-COPY ./KitCerto.Infrastructure ./KitCerto.Infrastructure
-COPY ./KitCerto.API ./KitCerto.API
+# Copia só os csproj para restaurar (cache eficiente)
+COPY backend/KitCerto.Domain/*.csproj        backend/KitCerto.Domain/
+COPY backend/KitCerto.Application/*.csproj   backend/KitCerto.Application/
+COPY backend/KitCerto.Infrastructure/*.csproj backend/KitCerto.Infrastructure/
+COPY backend/KitCerto.API/*.csproj           backend/KitCerto.API/
 
-RUN dotnet restore ./KitCerto.API/KitCerto.API.csproj
-RUN dotnet publish ./KitCerto.API/KitCerto.API.csproj -c Release -o /app/publish
+# Restaura pelo PROJETO da API (não usa .sln)
+RUN dotnet restore backend/KitCerto.API/KitCerto.API.csproj
 
-# 2) Runtime
-FROM mcr.microsoft.com/dotnet/aspnet:9.0
+# Agora copia todo o código
+COPY backend/ ./backend/
+
+# Publica a API
+RUN dotnet publish backend/KitCerto.API/KitCerto.API.csproj -c Release -o /app/publish
+
+# ===== runtime =====
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
 WORKDIR /app
-COPY --from=build /app/publish ./
 
-EXPOSE 5000 5001
+ENV ASPNETCORE_URLS=http://0.0.0.0:5000 \
+    ASPNETCORE_ENVIRONMENT=Docker
+
+COPY --from=build /app/publish .
+EXPOSE 5000
 ENTRYPOINT ["dotnet", "KitCerto.API.dll"]

@@ -1,43 +1,87 @@
-version: "3.9"
+# infra/docker-compose.yml
+# dica: essa diretiva "version" é opcional/obsoleta nas engines novas
+# version: "3.9"
 
 services:
+  # ---------- Mongo ----------
   mongo:
-    image: mongo:6
-    container_name: kitcerto_mongo
+    image: mongo:6.0        # (use 6.0 como você já vinha usando)
+    container_name: kitcerto-mongo
     ports:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  keycloak:
+  # ---------- Keycloak ----------
+
+  kc_keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    container_name: kitcerto_keycloak
-    command: start-dev
+    command: ["start-dev"]
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fs http://localhost:8080/health/ready || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 30
     environment:
-      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
-      # você pode importar um realm depois; por ora criaremos manualmente
-    ports:
-      - "8080:8080"
-    depends_on:
-      - mongo
+    volumes:
+      - ./keycloak/realm-kitcerto.json:/opt/keycloak/data/import/realm-kitcerto.json:ro
 
+
+
+  # ---------- API ----------
   api:
+    container_name: kitcerto-api
     build:
-      context: ./backend/KitCerto.API
-      dockerfile: Dockerfile
-    container_name: kitcerto_api
+      context: ..                                 # << raiz do repo
+      dockerfile: backend/KitCerto.API/Dockerfile # << Dockerfile da API
     environment:
+      ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://0.0.0.0:5000
-      ConnectionStrings__Mongo: ${MONGO_CONN:-mongodb://mongo:27017/kitcerto}
-      Auth__Authority: ${AUTH_AUTHORITY:-http://keycloak:8080/realms/kitcerto}
-      Auth__Audience: ${AUTH_AUDIENCE:-kitcerto-api}
-      # opcional: ASPNETCORE_ENVIRONMENT=Docker
+      # Appsettings.Docker.json espera "ConnectionStrings:Mongo" e Auth
+      ConnectionStrings__Mongo: mongodb://mongo:27017/kitcerto
+      Auth__Authority: http://keycloak:8080/realms/kitcerto
+      Auth__Audience: kitcerto-api
+      Cors__Origins: http://localhost:3000;http://localhost
+    depends_on:
+      mongo:
+        condition: service_healthy
+      keycloak:
+        condition: service_healthy
     ports:
       - "5000:5000"
-    depends_on:
-      - mongo
-      - keycloak
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+
+  # ---------- Frontend (comentado por enquanto) ----------
+  # frontend:
+  #   build:
+  #     context: ../frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - api
+
+  # ---------- Nginx (comentado por enquanto) ----------
+  # nginx:
+  #   image: nginx:alpine
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+  #   depends_on:
+  #     - api
+  #     - frontend
 
 volumes:
   mongo_data:

@@ -3,6 +3,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Linq;                 // ✅ LINQ usado no /whoami e no mapeamento
+using System.Threading.Tasks;      // ✅ Task usado no OnTokenValidated
 
 using MediatR;
 using Serilog;
@@ -11,7 +13,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
 
 using KitCerto.Application.Products.Create;
-using KitCerto.API.Swagger;                 // suas extensions de Swagger
+using KitCerto.API.Swagger;
 using KitCerto.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,7 +38,7 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // fallback DEV; não usar em prod
+            // fallback DEV; não usar em PROD
             policy.AllowAnyHeader().AllowAnyMethod();
         }
     });
@@ -47,10 +49,10 @@ builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter("fixed", opt =>
     {
-        opt.PermitLimit = 100;                 // até 100 req
-        opt.Window = TimeSpan.FromMinutes(1);  // por minuto
+        opt.PermitLimit = 100;                 // até 100 req/min
+        opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
-        opt.QueueLimit = 20;                   // fila extra
+        opt.QueueLimit = 20;
     });
 });
 
@@ -72,19 +74,21 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = authority;                // ex.: http://localhost:8080/realms/kitcerto
+        options.Authority = authority;                // ex.: http://keycloak:8080/realms/kitcerto
         options.RequireHttpsMetadata = false;         // DEV/Docker
         options.MapInboundClaims = false;             // manter nomes "crus" de claims
 
-        // O discovery do OIDC já é resolvido via Authority.
-        // Não setar MetadataAddress manualmente.
-
         options.TokenValidationParameters = new TokenValidationParameters
         {
+            // ✅ aceitar os dois emissores em DEV
             ValidateIssuer = true,
-            ValidIssuer = authority,
+            ValidIssuers = new[]
+            {
+                "http://localhost:8080/realms/kitcerto",
+                "http://keycloak:8080/realms/kitcerto"
+            },
 
-            // 🔑 aceitar múltiplos audiences: o Keycloak muitas vezes inclui "account"
+            // ✅ audience relaxado em DEV (pode endurecer depois)
             ValidateAudience = false,
             ValidAudiences = new[] { audience, "account" },
 
@@ -93,12 +97,16 @@ builder.Services
             ClockSkew = TimeSpan.FromSeconds(5)
         };
 
+        // ✅ mapeia roles do Keycloak para ClaimTypes.Role (ex.: "admin", "user")
         options.Events = new JwtBearerEvents
         {
             OnTokenValidated = ctx =>
             {
                 if (ctx.SecurityToken is JwtSecurityToken jwt)
                 {
+                    var identity = ctx.Principal?.Identities.FirstOrDefault();
+                    if (identity is null) return Task.CompletedTask;
+
                     // -------- roles em realm_access.roles
                     if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
                     {
@@ -112,11 +120,11 @@ builder.Services
                                 {
                                     var role = r.GetString();
                                     if (!string.IsNullOrWhiteSpace(role))
-                                        ctx.Principal?.Identities.First().AddClaim(new Claim(ClaimTypes.Role, role!));
+                                        identity.AddClaim(new Claim(ClaimTypes.Role, role!));
                                 }
                             }
                         }
-                        catch { /* ignora parsing */ }
+                        catch { /* ignora parsing em DEV */ }
                     }
 
                     // -------- roles em resource_access.{clientId}.roles
@@ -133,11 +141,11 @@ builder.Services
                                 {
                                     var role = r.GetString();
                                     if (!string.IsNullOrWhiteSpace(role))
-                                        ctx.Principal?.Identities.First().AddClaim(new Claim(ClaimTypes.Role, role!));
+                                        identity.AddClaim(new Claim(ClaimTypes.Role, role!));
                                 }
                             }
                         }
-                        catch { /* ignora parsing */ }
+                        catch { /* ignora parsing em DEV */ }
                     }
                 }
 
@@ -186,7 +194,7 @@ app.UseRateLimiter();
 app.MapHealthChecks("/health");
 app.MapControllers().RequireRateLimiting("fixed");
 
-// Endpoint de fumaça rápido (pode remover depois)
+// Endpoint de fumaça rápido
 app.MapGet("/whoami", (ClaimsPrincipal user) => new
 {
     name = user.Identity?.Name,

@@ -24,7 +24,7 @@
       "attributes": {
         "access.token.lifespan": "3600"
       },
-      "defaultClientScopes": ["profile", "email"],
+      "defaultClientScopes": ["profile", "email", "roles"],   
       "redirectUris": ["*"],
       "webOrigins": ["*"]
     }
