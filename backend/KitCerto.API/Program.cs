@@ -15,6 +15,7 @@ using System.Threading.RateLimiting;
 using KitCerto.Application.Products.Create;
 using KitCerto.API.Swagger;
 using KitCerto.Infrastructure.DependencyInjection;
+using KitCerto.Application.Dashboard.Overview;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -156,9 +157,15 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-// MediatR (Application)
+// MediatR (Application + Dashboard handlers)
 builder.Services.AddMediatR(cfg =>
-    cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly));
+{
+    cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(KitCerto.Application.Dashboard.Overview.DashboardOverviewQuery).Assembly);
+});
+
+// Registro explícito do handler do Dashboard (garantia)
+builder.Services.AddTransient<IRequestHandler<DashboardOverviewQuery, DashboardOverviewDto>, DashboardOverviewHandler>();
 
 // Infra (Mongo + Repositórios)
 builder.Services.AddInfrastructure(builder.Configuration);

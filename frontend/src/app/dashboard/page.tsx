@@ -2,7 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { mockDashboard, mockBestSellers, mockSearchSold } from "@/lib/mock";
+import { mockBestSellers, mockSearchSold } from "@/lib/mock";
+import { getDashboardOverviewWithMeta } from "@/services/dashboard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from "chart.js";
@@ -12,7 +13,8 @@ import { Package, AlertTriangle, CircleDollarSign } from "lucide-react";
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 export default function DashboardPage() {
-  const { data, isLoading } = useQuery({ queryKey: ["dash"], queryFn: () => mockDashboard() });
+  const { data: meta, isLoading } = useQuery({ queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getDashboardOverviewWithMeta() });
+  const data = meta?.data;
   const { data: best } = useQuery({ queryKey: ["best"], queryFn: () => mockBestSellers(5) });
   const [q, setQ] = React.useState("");
   const { data: soldSearch } = useQuery({ queryKey: ["sold", q], queryFn: () => mockSearchSold(q) });
@@ -71,8 +73,18 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-8">
       {/* Hero */}
       <section className="rounded-xl border bg-gradient-to-r from-primary/10 via-accent/10 to-transparent p-6">
-        <h1 className="text-2xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">Insights do catálogo e estoque (dados mockados).</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold">Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Insights do catálogo e estoque.</p>
+          </div>
+          {meta && (
+            <span className="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs text-muted-foreground">
+              Fonte: <strong className={"ml-1 " + (meta.source === 'api' ? 'text-primary' : 'text-accent')}>{meta.source.toUpperCase()}</strong>
+              {meta.fallback && <span className="ml-2 rounded bg-accent/20 px-2 py-0.5 text-[10px]">fallback</span>}
+            </span>
+          )}
+        </div>
       </section>
 
       {/* KPIs com glow */}

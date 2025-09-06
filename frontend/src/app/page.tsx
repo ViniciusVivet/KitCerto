@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { mockFetchCategories, mockSearchProducts, mockBestSellingProducts, mockLatestProducts } from "@/lib/mock";
+import { listProductsWithMeta, listCategoriesWithMeta, getBestSellingProductsWithMeta, getLatestProductsWithMeta } from "@/services/products";
 import { HorizontalCarousel } from "@/components/ui/carousel";
 import { useState } from "react";
 import { useCart } from "@/context/cart";
@@ -50,10 +50,14 @@ function ProductCard({ id, name, price }: { id: string; name: string; price: num
 export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | undefined>(undefined);
-  const { data: cats } = useQuery({ queryKey: ["cats"], queryFn: () => mockFetchCategories() });
-  const { data: products, isLoading } = useQuery({ queryKey: ["products", q, cat], queryFn: () => mockSearchProducts(q, cat) });
-  const { data: bestSelling } = useQuery({ queryKey: ["bestSelling"], queryFn: () => mockBestSellingProducts(10) });
-  const { data: latest } = useQuery({ queryKey: ["latest"], queryFn: () => mockLatestProducts(10) });
+  const { data: catsMeta } = useQuery({ queryKey: ["cats", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listCategoriesWithMeta() });
+  const cats = catsMeta?.data;
+  const { data: productsMeta, isLoading } = useQuery({ queryKey: ["products", q, cat, typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }) });
+  const products = productsMeta?.data;
+  const { data: bestMeta } = useQuery({ queryKey: ["bestSelling", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getBestSellingProductsWithMeta(10) });
+  const bestSelling = bestMeta?.data;
+  const { data: latestMeta } = useQuery({ queryKey: ["latest", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getLatestProductsWithMeta(10) });
+  const latest = latestMeta?.data;
 
   return (
     <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
