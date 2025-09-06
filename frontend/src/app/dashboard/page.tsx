@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from "chart.js";
 import { Doughnut, Bar } from "react-chartjs-2";
 import { Package, AlertTriangle, CircleDollarSign } from "lucide-react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -70,7 +71,8 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-8">
+    <ProtectedRoute requiredRole="admin">
+      <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-8">
       {/* Hero */}
       <section className="rounded-xl border bg-gradient-to-r from-primary/10 via-accent/10 to-transparent p-6">
         <div className="flex items-center justify-between">
@@ -216,7 +218,8 @@ export default function DashboardPage() {
           </ul>
         </Card>
       </section>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }
 

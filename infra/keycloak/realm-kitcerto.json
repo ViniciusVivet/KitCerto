@@ -27,6 +27,23 @@
       "defaultClientScopes": ["profile", "email", "roles"],   
       "redirectUris": ["*"],
       "webOrigins": ["*"]
+    },
+    {
+      "clientId": "kitcerto-frontend",
+      "name": "KitCerto Frontend",
+      "publicClient": true,
+      "directAccessGrantsEnabled": false,
+      "standardFlowEnabled": true,
+      "serviceAccountsEnabled": false,
+      "implicitFlowEnabled": false,
+      "bearerOnly": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "access.token.lifespan": "3600"
+      },
+      "defaultClientScopes": ["profile", "email", "roles"],
+      "redirectUris": ["http://localhost:3000/*", "http://frontend:3000/*"],
+      "webOrigins": ["http://localhost:3000", "http://frontend:3000"]
     }
   ],
   "users": [

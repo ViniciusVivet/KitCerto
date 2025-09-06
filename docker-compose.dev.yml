@@ -21,18 +21,19 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    command: ["start-dev"]
-    ports: ["8080:8080"]
-    # healthcheck:
-    #   test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/health/ready || exit 1"]
-    #   interval: 15s
-    #   timeout: 3s
-    #   retries: 30
+    container_name: kitcerto-keycloak
+    command: ["start-dev", "--http-port=8080", "--import-realm"]
     environment:
       KEYCLOAK_ADMIN: admin
-      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
     volumes:
-      - ./keycloak/realm-kitcerto.json:/opt/keycloak/data/import/realm-kitcerto.json:ro
+      # IMPORT do realm - monta o diretório inteiro
+      - ./infra/keycloak:/opt/keycloak/data/import:ro
+      # PERSISTÊNCIA dos dados do Keycloak
+      - keycloak_data:/opt/keycloak/data
+    restart: unless-stopped
 
 
 
@@ -72,6 +73,9 @@ services:
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://api:5000
       - NEXT_PUBLIC_USE_MOCKS=false
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://keycloak:8080
+      - NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
+      - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
     depends_on:
       - api
     healthcheck:
@@ -93,3 +97,4 @@ services:
 
 volumes:
   mongo_data:
+  keycloak_data:

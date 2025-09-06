@@ -1,6 +1,88 @@
-@KitCerto.API_HostAddress = http://localhost:5011
+@KitCerto.API_HostAddress = http://localhost:5000
+@Token = your_jwt_token_here
 
-GET {{KitCerto.API_HostAddress}}/weatherforecast/
+### Health Check
+GET {{KitCerto.API_HostAddress}}/health
 Accept: application/json
 
-###
+### Auth Ping (No Auth Required)
+GET {{KitCerto.API_HostAddress}}/api/auth/ping
+Accept: application/json
+
+### Who Am I (Requires Auth)
+GET {{KitCerto.API_HostAddress}}/api/auth/whoami
+Authorization: Bearer {{Token}}
+Accept: application/json
+
+### List Categories
+GET {{KitCerto.API_HostAddress}}/api/categories
+Accept: application/json
+
+### Create Category (Admin Only)
+POST {{KitCerto.API_HostAddress}}/api/categories
+Authorization: Bearer {{Token}}
+Content-Type: application/json
+
+{
+  "name": "Nova Categoria",
+  "description": "Descrição da categoria"
+}
+
+### List Products
+GET {{KitCerto.API_HostAddress}}/api/products?page=1&pageSize=10
+Accept: application/json
+
+### Search Products
+GET {{KitCerto.API_HostAddress}}/api/products/search?query=produto&page=1&pageSize=10
+Accept: application/json
+
+### Get Product by ID
+GET {{KitCerto.API_HostAddress}}/api/products/{{productId}}
+Accept: application/json
+
+### Create Product (Admin Only)
+POST {{KitCerto.API_HostAddress}}/api/products
+Authorization: Bearer {{Token}}
+Content-Type: application/json
+
+{
+  "name": "Novo Produto",
+  "description": "Descrição do produto",
+  "price": 99.99,
+  "stock": 50,
+  "categoryId": "category_id_here"
+}
+
+### Update Product (Admin Only)
+PUT {{KitCerto.API_HostAddress}}/api/products/{{productId}}
+Authorization: Bearer {{Token}}
+Content-Type: application/json
+
+{
+  "name": "Produto Atualizado",
+  "description": "Nova descrição",
+  "price": 149.99,
+  "stock": 30,
+  "categoryId": "category_id_here"
+}
+
+### Update Product Stock (Admin Only)
+PUT {{KitCerto.API_HostAddress}}/api/products/{{productId}}/stock
+Authorization: Bearer {{Token}}
+Content-Type: application/json
+
+{
+  "stock": 25
+}
+
+### Delete Product (Admin Only)
+DELETE {{KitCerto.API_HostAddress}}/api/products/{{productId}}
+Authorization: Bearer {{Token}}
+
+### List Low Stock Products
+GET {{KitCerto.API_HostAddress}}/api/products/low-stock
+Accept: application/json
+
+### Dashboard Overview
+GET {{KitCerto.API_HostAddress}}/api/dashboard/overview
+Accept: application/json

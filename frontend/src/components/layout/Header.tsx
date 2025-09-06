@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/sheet";
 import { useState } from "react";
 import { CheckoutModal } from "@/components/checkout/CheckoutModal";
-import { LoginModal, RegisterModal } from "@/components/auth/AuthModals";
+import { LoginButton } from "@/components/auth/LoginButton";
 
 export function Header() {
   const [open, setOpen] = useState(false);
@@ -69,14 +69,7 @@ export function Header() {
             </Button>
           </Link>
 
-          <LoginModal>
-            <Button variant="ghost" size="icon" aria-label="Entrar">
-              <UserRound className="h-5 w-5" />
-            </Button>
-          </LoginModal>
-          <RegisterModal>
-            <Button variant="default" className="hidden sm:inline-flex">Cadastrar</Button>
-          </RegisterModal>
+          <LoginButton />
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

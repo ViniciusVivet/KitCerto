@@ -83,7 +83,8 @@ Integração completa com API backend implementada com **fallback inteligente** 
 - ✅ Feature-flag configurada (`NEXT_PUBLIC_USE_MOCKS`)
 - ✅ TanStack Query para gerenciamento de estado
 - ✅ **Docker Compose de desenvolvimento**: frontend integrado e funcionando perfeitamente
-- ⏳ Autenticação com Keycloak (login/logout, proteção de rotas e guards de ações)
+- ✅ **Autenticação Keycloak**: login/logout, proteção de rotas e guards de ações funcionando perfeitamente
+- ✅ **Proteção de rotas**: Dashboard protegido para role `admin`, outras rotas para `user`
 - ⏳ Nginx/Compose: adicionar serviço `frontend` e roteamento `/api` → API
 
 ### Configuração de Ambiente
