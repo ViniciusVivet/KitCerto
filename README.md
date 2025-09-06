@@ -7,9 +7,9 @@
 - Auth: **Keycloak (OIDC + JWT)** com roles `admin` e `user`
 - Observabilidade/Infra: **Swagger + ProblemDetails** · **Healthchecks** · **Serilog** · **Rate limiting** · **CORS**
 - Docker Compose: **API, Keycloak, Mongo** (opcional: **Mongo Express**)
-- Frontend (mock-first): **Next.js 14** · **TypeScript** · **Tailwind 3** · **shadcn/ui** · **TanStack Query** · **Chart.js**
+- Frontend: **Next.js 14** · **TypeScript** · **Tailwind 3** · **shadcn/ui** · **TanStack Query** · **Chart.js** · **API Integration**
 
-> Status: Backend/Infra ~90% (Auth OK). Frontend (mock-first) funcional: Home, Carrinho, Checkout, Dashboard e Meus Pedidos. Integração com API/Keycloak será “plug-in”.
+> Status: Backend/Infra ~98% (Auth OK). Frontend funcional com integração API completa: Home, Carrinho, Checkout, Dashboard e Meus Pedidos. Serviços HTTP implementados com fallback inteligente (API → mocks). **Docker Compose de desenvolvimento funcionando perfeitamente**.
 
 ---
 
@@ -20,7 +20,7 @@
 - Autenticação/Autorização com Keycloak (roles)
 - Performance: paginação, filtros, boas práticas
 - Infra: Docker + Compose
-- Frontend: Next.js (mock agora; real na integração)
+- Frontend: Next.js (integração API completa com fallback para mocks)
 
 ---
 
@@ -37,22 +37,38 @@ Na raiz do repositório:
 cp .env.example .env
 ```
 
-### 3) Subir serviços (API, Mongo, Keycloak)
+### 3) Subir serviços (API, Mongo, Keycloak, Frontend)
 ```bash
 docker compose -f docker-compose.dev.yml up -d --build
 ```
+
+> **Nota**: Este comando sobe todos os serviços incluindo o frontend, que se conecta automaticamente com a API.
 
 ### 4) URLs
 - API: http://localhost:5000  
 - Swagger: http://localhost:5000/swagger  
 - Keycloak: http://localhost:8080  
-- (Opcional) Mongo Express: http://localhost:8081  
-- (Em breve) Frontend via Compose/Nginx: http://localhost:3000
+- Frontend: http://localhost:3000  
+- (Opcional) Mongo Express: http://localhost:8081
 
 ---
 
-## 🖥️ Frontend (desenvolvimento local)
-O frontend está em Next.js 14 (mock-first). Requisitos: **Node 20 LTS**.
+## 🖥️ Frontend
+
+### Via Docker Compose (Recomendado)
+O frontend já está integrado no **Docker Compose de desenvolvimento** e se conecta automaticamente com a API:
+
+```bash
+# Subir todos os serviços (incluindo frontend)
+docker compose -f docker-compose.dev.yml up -d --build
+
+# Acessar: http://localhost:3000
+```
+
+> **Status**: ✅ **Funcionando perfeitamente** - Frontend consumindo API, dados MongoDB preservados, Keycloak ativo.
+
+### Desenvolvimento Local (Opcional)
+Para desenvolvimento local com hot-reload:
 
 ```bash
 cd frontend
@@ -142,9 +158,11 @@ Swagger: **/swagger**
 ---
 
 ## 🧱 Próximos passos
-- Frontend: substituir mocks por serviços HTTP (TanStack Query) e integrar Keycloak (login/logout, guards)
-- Nginx: reverse proxy (`/api` → API, `/` → Front), adicionar serviço no Compose
-- Cache de listas (IMemoryCache/ETag), seeds & testes de integração (xUnit + FluentAssertions)
+- ✅ Frontend: serviços HTTP implementados com fallback inteligente (API → mocks)
+- ✅ Docker Compose: frontend integrado e funcionando perfeitamente
+- ⏳ Frontend: integrar Keycloak (login/logout, guards) no frontend
+- ⏳ Nginx: reverse proxy (`/api` → API, `/` → Front), adicionar serviço no Compose
+- ⏳ Cache de listas (IMemoryCache/ETag), seeds & testes de integração (xUnit + FluentAssertions)
 
 ---
 

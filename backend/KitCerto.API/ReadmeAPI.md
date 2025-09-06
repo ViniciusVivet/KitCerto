@@ -45,6 +45,13 @@ dotnet restore
 ## Endpoints resumidos
 - Categorias: `GET/POST /api/categories`
 - Produtos: `GET /api/products`, `POST/PUT/DELETE /api/products/{id}`, `PUT /api/products/{id}/stock`
+- Produtos: `GET /api/products/search` (com filtros e paginação)
+- Produtos: `GET /api/products/low-stock` (alertas de estoque < 10)
 - Dashboard: `GET /api/dashboard/overview`
-- Auth util: `GET /api/auth/ping`
+- Auth util: `GET /api/auth/ping`, `GET /whoami` (info do usuário logado)
+
+## Integração Frontend
+- ✅ CORS configurado para `http://localhost:3000`
+- ✅ Endpoints testados e funcionais
+- ✅ Fallback inteligente implementado no frontend
 

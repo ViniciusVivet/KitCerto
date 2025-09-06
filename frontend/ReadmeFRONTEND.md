@@ -1,7 +1,7 @@
 # KitCerto Frontend
 
 Aplicação web do e-commerce **KitCerto**, construída em **Next.js 14 + TypeScript + Tailwind 3 + shadcn/ui**.  
-Neste momento está operando com dados **mockados** (sem depender da API/Keycloak) para viabilizar a validação visual/UX do fluxo completo de compra.
+Integração completa com API backend implementada com **fallback inteligente** (API → mocks) para desenvolvimento e produção.
 
 ---
 
@@ -57,7 +57,7 @@ Neste momento está operando com dados **mockados** (sem depender da API/Keycloa
 - npm start → roda build de produção
 - npm run lint → executa ESLint
 
-## ✨ Funcionalidades (mock)
+## ✨ Funcionalidades
 
 - Home
   - Hero (banners), carrosséis (Mais vendidos/Novidades)
@@ -69,18 +69,41 @@ Neste momento está operando com dados **mockados** (sem depender da API/Keycloa
 - Checkout
   - Fluxo em passos (endereço/frete/pagamento/revisão) com cupom (ex.: `KIT10`)
   - Toasts de confirmação
-- Dashboard (mock)
+- Dashboard
   - KPIs, produtos/valor por categoria, distribuição por preço
   - Mais vendidos e pesquisa de vendidos
-- Meus pedidos (mock)
+  - Integração com API backend
+- Meus pedidos
   - Filtros por status/período, busca, detalhes em modal
-  - “Repetir compra” (joga itens no carrinho)
+  - "Repetir compra" (joga itens no carrinho)
 
-## 🔌 Integração futura (quando habilitar API/Keycloak)
+## 🔌 Integração API/Keycloak
 
-- Substituir hooks mock (`lib/mock.ts`) por serviços HTTP (TanStack Query)
-- Autenticação com Keycloak (login/logout, proteção de rotas e guards de ações)
-- Nginx/Compose: adicionar serviço `frontend` e roteamento `/api` → API
+- ✅ Serviços HTTP implementados com fallback inteligente (API → mocks)
+- ✅ Feature-flag configurada (`NEXT_PUBLIC_USE_MOCKS`)
+- ✅ TanStack Query para gerenciamento de estado
+- ✅ **Docker Compose de desenvolvimento**: frontend integrado e funcionando perfeitamente
+- ⏳ Autenticação com Keycloak (login/logout, proteção de rotas e guards de ações)
+- ⏳ Nginx/Compose: adicionar serviço `frontend` e roteamento `/api` → API
+
+### Configuração de Ambiente
+
+#### Docker Compose (Automático)
+No Docker Compose de desenvolvimento, as variáveis são configuradas automaticamente:
+```bash
+NEXT_PUBLIC_API_BASE_URL=http://api:5000
+NEXT_PUBLIC_USE_MOCKS=false
+```
+
+#### Desenvolvimento Local
+```bash
+# Para usar API real
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+NEXT_PUBLIC_USE_MOCKS=false
+
+# Para usar mocks (desenvolvimento)
+NEXT_PUBLIC_USE_MOCKS=true
+```
 
 ## 📝 Notas
 

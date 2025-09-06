@@ -75,7 +75,7 @@ builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = authority;                // ex.: http://keycloak:8080/realms/kitcerto
+        options.Authority = authority;                // ex.: o http://keycloak:8080/realms/kitcerto
         options.RequireHttpsMetadata = false;         // DEV/Docker
         options.MapInboundClaims = false;             // manter nomes "crus" de claims
 
