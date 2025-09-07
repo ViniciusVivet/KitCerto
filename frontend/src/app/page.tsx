@@ -13,6 +13,7 @@ import { Heart } from "lucide-react";
 import { QuickView } from "@/components/product/QuickView";
 import { useToast } from "@/context/toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/context/auth";
 
 function ProductCard({ id, name, price }: { id: string; name: string; price: number }) {
   const { dispatch } = useCart();
@@ -50,6 +51,7 @@ function ProductCard({ id, name, price }: { id: string; name: string; price: num
 export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | undefined>(undefined);
+  const { isAuthenticated, register } = useAuth();
   const { data: catsMeta } = useQuery({ queryKey: ["cats", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listCategoriesWithMeta() });
   const cats = catsMeta?.data;
   const { data: productsMeta, isLoading } = useQuery({ queryKey: ["products", q, cat, typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }) });
@@ -87,6 +89,9 @@ export default function Home() {
               </Badge>
             ))}
           </div>
+          {!isAuthenticated && (
+            <Button onClick={register} className="ml-auto">Registrar</Button>
+          )}
           {/* Trigger filtros mobile */}
           <Sheet>
             <SheetTrigger className="md:hidden"><Badge className="cursor-pointer">Filtros</Badge></SheetTrigger>

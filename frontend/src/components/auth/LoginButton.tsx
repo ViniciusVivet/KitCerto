@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { LogIn, LogOut, User } from 'lucide-react';
 
 export const LoginButton = () => {
-  const { isAuthenticated, isLoading, user, login, logout } = useAuth();
+  const { isAuthenticated, isLoading, user, login, logout, register } = useAuth();
 
   if (isLoading) {
     return (
@@ -31,9 +31,14 @@ export const LoginButton = () => {
   }
 
   return (
-    <Button onClick={login}>
-      <LogIn className="h-4 w-4 mr-2" />
-      Entrar
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button onClick={login}>
+        <LogIn className="h-4 w-4 mr-2" />
+        Entrar
+      </Button>
+      <Button variant="secondary" onClick={register}>
+        Registrar
+      </Button>
+    </div>
   );
 };

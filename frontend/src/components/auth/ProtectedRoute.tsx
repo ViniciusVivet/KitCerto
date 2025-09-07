@@ -7,12 +7,20 @@ interface ProtectedRouteProps {
   children: ReactNode;
   requiredRole?: string;
   fallback?: ReactNode;
+  unauthTitle?: string;
+  unauthMessage?: string;
+  unauthzTitle?: string;
+  unauthzMessage?: string;
 }
 
 export const ProtectedRoute = ({ 
   children, 
   requiredRole, 
-  fallback 
+  fallback,
+  unauthTitle,
+  unauthMessage,
+  unauthzTitle,
+  unauthzMessage,
 }: ProtectedRouteProps) => {
   const { isAuthenticated, isLoading, hasRole } = useAuth();
 
@@ -31,9 +39,9 @@ export const ProtectedRoute = ({
     return fallback || (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Acesso Restrito</h2>
+          <h2 className="text-2xl font-bold mb-4">{unauthTitle ?? "Acesso Restrito"}</h2>
           <p className="text-muted-foreground mb-4">
-            Você precisa estar logado para acessar esta página.
+            {unauthMessage ?? "Você precisa estar logado para acessar esta página."}
           </p>
           <button 
             onClick={() => window.location.href = '/'}
@@ -50,9 +58,9 @@ export const ProtectedRoute = ({
     return fallback || (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Acesso Negado</h2>
+          <h2 className="text-2xl font-bold mb-4">{unauthzTitle ?? "Acesso Negado"}</h2>
           <p className="text-muted-foreground mb-4">
-            Você não tem permissão para acessar esta página.
+            {unauthzMessage ?? "Você não tem permissão para acessar esta página."}
           </p>
           <button 
             onClick={() => window.location.href = '/'}

@@ -10,6 +10,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearSca
 import { Doughnut, Bar } from "react-chartjs-2";
 import { Package, AlertTriangle, CircleDollarSign } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
@@ -71,8 +72,16 @@ export default function DashboardPage() {
   };
 
   return (
-    <ProtectedRoute requiredRole="admin">
-      <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-8">
+    <ProtectedRoute
+      requiredRole="admin"
+      unauthTitle="Área restrita"
+      unauthMessage="Área para gerenciamento de produtos. Faça login para continuar."
+      unauthzTitle="Área de gerenciamento de loja"
+      unauthzMessage="Somente para vendedores credenciados (contas com permissão de administrador)."
+    >
+      <div className="flex">
+        <DashboardSidebar />
+        <div className="mx-auto max-w-[92rem] flex-1 px-4 py-6 sm:px-5 lg:px-7 space-y-8">
       {/* Hero */}
       <section className="rounded-xl border bg-gradient-to-r from-primary/10 via-accent/10 to-transparent p-6">
         <div className="flex items-center justify-between">
@@ -218,6 +227,7 @@ export default function DashboardPage() {
           </ul>
         </Card>
       </section>
+      </div>
       </div>
     </ProtectedRoute>
   );

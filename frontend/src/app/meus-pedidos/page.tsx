@@ -6,6 +6,8 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { Home, Package, Heart, MapPin, CreditCard, Ticket, User, LifeBuoy } from "lucide-react";
 import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCart } from "@/context/cart";
@@ -37,47 +39,82 @@ export default function OrdersPage() {
         <p className="text-sm text-muted-foreground">Acompanhe seus pedidos, favorite e repita compras.</p>
       </section>
 
-      <section className="mb-4 flex flex-wrap items-center gap-2">
-        <Input placeholder="Buscar por código ou item…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-80" />
-        <div className="flex flex-wrap items-center gap-2">
-          {[undefined, "processing", "shipped", "delivered", "cancelled"].map((s, idx) => (
-            <Badge key={idx} className={`${status === s ? "bg-primary text-primary-foreground" : "cursor-pointer"}`} onClick={() => setStatus(s as any)}>
-              {s ?? "Todos"}
-            </Badge>
-          ))}
-        </div>
-        <div className="flex items-center gap-2 text-sm">
-          <Button variant={days === 30 ? "default" : "secondary"} onClick={() => setDays(30)}>30 dias</Button>
-          <Button variant={days === 90 ? "default" : "secondary"} onClick={() => setDays(90)}>90 dias</Button>
-          <Button variant={days === 180 ? "default" : "secondary"} onClick={() => setDays(180)}>180 dias</Button>
-        </div>
-      </section>
+      <section className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
+        {/* Sidebar do comprador */}
+        <aside className="hidden md:block space-y-4 rounded-xl border p-3 sticky top-24 h-max">
+          <nav className="space-y-1">
+            <Link href="/" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><Home className="h-4 w-4" /> Visão geral</Button>
+            </Link>
+            <Link href="/meus-pedidos" className="block">
+              <Button variant="secondary" className="w-full justify-start gap-2"><Package className="h-4 w-4" /> Meus pedidos</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><Heart className="h-4 w-4" /> Favoritos</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><MapPin className="h-4 w-4" /> Endereços</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><CreditCard className="h-4 w-4" /> Pagamentos</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><Ticket className="h-4 w-4" /> Cupons</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><User className="h-4 w-4" /> Dados pessoais</Button>
+            </Link>
+            <Link href="#" className="block">
+              <Button variant="ghost" className="w-full justify-start gap-2"><LifeBuoy className="h-4 w-4" /> Suporte</Button>
+            </Link>
+          </nav>
+        </aside>
 
-      <section className="grid grid-cols-1 gap-4">
-        {isLoading && Array.from({ length: 6 }).map((_, i) => (
-          <Card key={`sk-${i}`} className="h-28 animate-pulse" />
-        ))}
-        {!isLoading && (orders ?? []).map((o) => (
-          <Card key={o.id} className="p-4">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-              <div className="space-y-1">
-                <div className="flex items-center gap-3">
-                  <h3 className="font-semibold">{o.id}</h3>
-                  <StatusBadge s={o.status} />
-                </div>
-                <p className="text-sm text-muted-foreground">{new Date(o.date).toLocaleDateString("pt-BR")} • {o.items.length} itens</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-semibold">{o.total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
-                <OrderDetails order={o} />
-                <Button onClick={() => {
-                  o.items.forEach(it => dispatch({ type: "add", item: { id: it.productId, name: it.name, price: it.unitPrice, qty: it.quantity } }));
-                  notify({ title: "Itens adicionados ao carrinho", description: `Pedido ${o.id}`, variant: "success" });
-                }}>Repetir compra</Button>
-              </div>
+        {/* Conteúdo principal */}
+        <div>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <Input placeholder="Buscar por código ou item…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-80" />
+            <div className="flex flex-wrap items-center gap-2">
+              {[undefined, "processing", "shipped", "delivered", "cancelled"].map((s, idx) => (
+                <Badge key={idx} className={`${status === s ? "bg-primary text-primary-foreground" : "cursor-pointer"}`} onClick={() => setStatus(s as any)}>
+                  {s ?? "Todos"}
+                </Badge>
+              ))}
             </div>
-          </Card>
-        ))}
+            <div className="flex items-center gap-2 text-sm">
+              <Button variant={days === 30 ? "default" : "secondary"} onClick={() => setDays(30)}>30 dias</Button>
+              <Button variant={days === 90 ? "default" : "secondary"} onClick={() => setDays(90)}>90 dias</Button>
+              <Button variant={days === 180 ? "default" : "secondary"} onClick={() => setDays(180)}>180 dias</Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4">
+            {isLoading && Array.from({ length: 6 }).map((_, i) => (
+              <Card key={`sk-${i}`} className="h-28 animate-pulse" />
+            ))}
+            {!isLoading && (orders ?? []).map((o) => (
+              <Card key={o.id} className="p-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-3">
+                      <h3 className="font-semibold">{o.id}</h3>
+                      <StatusBadge s={o.status} />
+                    </div>
+                    <p className="text-sm text-muted-foreground">{new Date(o.date).toLocaleDateString("pt-BR")} • {o.items.length} itens</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-semibold">{o.total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                    <OrderDetails order={o} />
+                    <Button onClick={() => {
+                      o.items.forEach(it => dispatch({ type: "add", item: { id: it.productId, name: it.name, price: it.unitPrice, qty: it.quantity } }));
+                      notify({ title: "Itens adicionados ao carrinho", description: `Pedido ${o.id}`, variant: "success" });
+                    }}>Repetir compra</Button>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </div>
       </section>
     </div>
   );

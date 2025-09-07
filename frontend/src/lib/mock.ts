@@ -38,6 +38,51 @@ export type Order = {
   };
 };
 
+// -------- Seller Requests (mock) --------
+export type SellerRequest = {
+  id: string;
+  userId: string;
+  email: string;
+  storeName: string;
+  phone?: string;
+  description?: string;
+  status: "pending" | "approved" | "rejected";
+  createdAt: number;
+  reviewedAt?: number;
+};
+
+let sellerRequests: SellerRequest[] = [];
+
+export async function mockCreateSellerRequest(req: Omit<SellerRequest, "id" | "status" | "createdAt">) {
+  await new Promise((r) => setTimeout(r, 200));
+  const item: SellerRequest = {
+    id: `SR-${Date.now()}`,
+    status: "pending",
+    createdAt: Date.now(),
+    ...req,
+  };
+  sellerRequests.unshift(item);
+  return item;
+}
+
+export async function mockListSellerRequests(status?: SellerRequest["status"]) {
+  await new Promise((r) => setTimeout(r, 150));
+  const list = status ? sellerRequests.filter((s) => s.status === status) : sellerRequests;
+  return list;
+}
+
+export async function mockApproveSellerRequest(id: string) {
+  await new Promise((r) => setTimeout(r, 150));
+  sellerRequests = sellerRequests.map((s) => (s.id === id ? { ...s, status: "approved", reviewedAt: Date.now() } : s));
+  return { ok: true };
+}
+
+export async function mockRejectSellerRequest(id: string) {
+  await new Promise((r) => setTimeout(r, 150));
+  sellerRequests = sellerRequests.map((s) => (s.id === id ? { ...s, status: "rejected", reviewedAt: Date.now() } : s));
+  return { ok: true };
+}
+
 export const categories: Category[] = [
   { id: "cat-street", name: "Street" },
   { id: "cat-joias", name: "Jóias" },
@@ -54,7 +99,7 @@ const kinds = [
   { label: "Camiseta", price: 149.9 },
 ];
 
-const baseProducts: Product[] = Array.from({ length: 24 }).map((_, i) => {
+export const baseProducts: Product[] = Array.from({ length: 24 }).map((_, i) => {
   const kind = kinds[i % kinds.length];
   const isPromo = i % 5 === 0;
   const oldPrice = isPromo ? Math.round(kind.price * 1.15 * 100) / 100 : undefined;
@@ -72,17 +117,50 @@ const baseProducts: Product[] = Array.from({ length: 24 }).map((_, i) => {
   };
 });
 
+// Estado mutável para operações de CRUD no modo mock
+let mockProducts: Product[] = [...baseProducts];
+
+export function getMockProducts() {
+  return mockProducts;
+}
+
+export function mockCreateProduct(payload: Partial<Product>) {
+  const id = payload.id || `p-${Date.now()}`;
+  const product: Product = {
+    id,
+    name: payload.name || "Novo produto",
+    description: payload.description || "",
+    price: payload.price ?? 0,
+    stock: payload.stock ?? 0,
+    categoryId: payload.categoryId || categories[0].id,
+    sold: payload.sold ?? 0,
+    createdAt: Date.now(),
+  };
+  mockProducts = [product, ...mockProducts];
+  return product;
+}
+
+export function mockUpdateProduct(id: string, payload: Partial<Product>) {
+  mockProducts = mockProducts.map((p) => (p.id === id ? { ...p, ...payload, id: p.id } : p));
+  return mockProducts.find((p) => p.id === id);
+}
+
+export function mockDeleteProduct(id: string) {
+  mockProducts = mockProducts.filter((p) => p.id !== id);
+  return { ok: true };
+}
+
 export async function mockFetchProducts(params?: { page?: number; pageSize?: number }) {
   const page = params?.page ?? 1;
   const pageSize = params?.pageSize ?? 20;
   const start = (page - 1) * pageSize;
-  const items = baseProducts.slice(start, start + pageSize);
+  const items = mockProducts.slice(start, start + pageSize);
   await new Promise((r) => setTimeout(r, 300));
-  return { items, total: baseProducts.length, page, pageSize };
+  return { items, total: mockProducts.length, page, pageSize };
 }
 
 export async function mockSearchProducts(q?: string, categoryId?: string) {
-  const byName = q ? baseProducts.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())) : baseProducts;
+  const byName = q ? mockProducts.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())) : mockProducts;
   const byCat = categoryId ? byName.filter((p) => p.categoryId === categoryId) : byName;
   await new Promise((r) => setTimeout(r, 200));
   return { items: byCat, total: byCat.length };
@@ -94,23 +172,23 @@ export async function mockFetchCategories() {
 }
 
 export async function mockDashboard() {
-  const totalProducts = baseProducts.length;
-  const lowStock = baseProducts.filter((p) => p.stock < 10).length;
-  const totalValue = baseProducts.reduce((acc, p) => acc + p.price * p.stock, 0);
+  const totalProducts = mockProducts.length;
+  const lowStock = mockProducts.filter((p) => p.stock < 10).length;
+  const totalValue = mockProducts.reduce((acc, p) => acc + p.price * p.stock, 0);
   const byCategory = categories.map((c) => ({
     categoryId: c.id,
     categoryName: c.name,
-    count: baseProducts.filter((p) => p.categoryId === c.id).length,
+    count: mockProducts.filter((p) => p.categoryId === c.id).length,
   }));
   const byCategoryValue = categories.map((c) => ({
     categoryId: c.id,
     categoryName: c.name,
-    value: baseProducts
+    value: mockProducts
       .filter((p) => p.categoryId === c.id)
       .reduce((acc, p) => acc + p.price * p.stock, 0),
   }));
-  const lowStockItems = baseProducts.filter((p) => p.stock < 10).slice(0, 10);
-  const topProductsByValue = [...baseProducts]
+  const lowStockItems = mockProducts.filter((p) => p.stock < 10).slice(0, 10);
+  const topProductsByValue = [...mockProducts]
     .map((p) => ({ id: p.id, name: p.name, value: p.price * p.stock }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 5);
@@ -130,7 +208,7 @@ export async function mockDashboard() {
 
 export async function mockBestSellers(limit = 5) {
   await new Promise((r) => setTimeout(r, 200));
-  return [...baseProducts]
+  return [...mockProducts]
     .map((p) => ({ id: p.id, name: p.name, sold: p.sold ?? 0 }))
     .sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
     .slice(0, limit);
@@ -139,8 +217,8 @@ export async function mockBestSellers(limit = 5) {
 export async function mockSearchSold(query?: string) {
   await new Promise((r) => setTimeout(r, 200));
   const filtered = (query
-    ? baseProducts.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
-    : baseProducts
+    ? mockProducts.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
+    : mockProducts
   )
     .map((p) => ({ id: p.id, name: p.name, sold: p.sold ?? 0 }))
     .sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0));
@@ -149,14 +227,14 @@ export async function mockSearchSold(query?: string) {
 
 export async function mockBestSellingProducts(limit = 10): Promise<Product[]> {
   await new Promise((r) => setTimeout(r, 200));
-  return [...baseProducts]
+  return [...mockProducts]
     .sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
     .slice(0, limit);
 }
 
 export async function mockLatestProducts(limit = 10): Promise<Product[]> {
   await new Promise((r) => setTimeout(r, 200));
-  return [...baseProducts]
+  return [...mockProducts]
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
     .slice(0, limit);
 }

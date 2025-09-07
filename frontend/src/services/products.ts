@@ -1,6 +1,6 @@
-import { apiGet } from "@/lib/api";
+import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
 import { useMocks } from "@/lib/config";
-import { mockSearchProducts, mockFetchCategories } from "@/lib/mock";
+import { mockSearchProducts, mockFetchCategories, mockCreateProduct, mockUpdateProduct, mockDeleteProduct } from "@/lib/mock";
 import { mockBestSellingProducts, mockLatestProducts } from "@/lib/mock";
 
 export type ProductList = {
@@ -93,6 +93,38 @@ export async function getBestSellingProductsWithMeta(limit: number = 10): Promis
   } catch {
     return { data: await mockBestSellingProducts(limit), source: "mock", fallback: true };
   }
+}
+
+// CRUD
+export async function createProduct(payload: any) {
+  const forced = getForcedDataSource();
+  const preferMock = useMocks || forced === "mock";
+  if (preferMock) {
+    return Promise.resolve(mockCreateProduct(payload));
+  }
+  return apiPost<any>(`/api/products`, payload);
+}
+
+export async function updateProduct(id: string, payload: any) {
+  const forced = getForcedDataSource();
+  const preferMock = useMocks || forced === "mock";
+  if (preferMock) {
+    return Promise.resolve(mockUpdateProduct(id, payload));
+  }
+  return apiPut<any>(`/api/products/${id}`, payload);
+}
+
+export async function deleteProduct(id: string) {
+  const forced = getForcedDataSource();
+  const preferMock = useMocks || forced === "mock";
+  if (preferMock) {
+    return Promise.resolve(mockDeleteProduct(id));
+  }
+  return apiDelete(`/api/products/${id}`);
+}
+
+export async function getProductById(id: string) {
+  return apiGet<any>(`/api/products/${id}`);
 }
 
 

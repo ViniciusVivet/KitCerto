@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ShoppingCart, UserRound, Search, Package, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/cart";
 import { useToast } from "@/context/toast";
+import { useAuth } from "@/context/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +22,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const { state } = useCart();
   const { notify } = useToast();
+  const { isAdmin } = useAuth();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -69,6 +71,14 @@ export function Header() {
             </Button>
           </Link>
 
+          {!isAdmin() && (
+            <Link href="/quero-vender" className="hidden sm:inline-block" aria-label="Quero vender">
+              <Button variant="ghost" className="gap-2">
+                <UserRound className="h-4 w-4" />
+                <span>Quero vender</span>
+              </Button>
+            </Link>
+          )}
           <LoginButton />
 
           <Sheet open={open} onOpenChange={setOpen}>

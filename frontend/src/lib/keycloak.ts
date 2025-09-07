@@ -36,6 +36,12 @@ export const login = () => {
   });
 };
 
+export const register = () => {
+  keycloak.register({
+    redirectUri: window.location.origin,
+  });
+};
+
 // Função para fazer logout
 export const logout = () => {
   keycloak.logout({

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { keycloak, initKeycloak, login, logout, hasRole, isAdmin, isUser, getToken, getUserInfo } from '@/lib/keycloak';
+import { keycloak, initKeycloak, login, logout, hasRole, isAdmin, isUser, getToken, getUserInfo, register } from '@/lib/keycloak';
 
 interface User {
   id: string;
@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   login: () => void;
+  register: () => void;
   logout: () => void;
   hasRole: (role: string) => boolean;
   isAdmin: () => boolean;
@@ -109,6 +110,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login();
   };
 
+  const handleRegister = () => {
+    register();
+  };
+
   const handleLogout = () => {
     logout();
   };
@@ -131,6 +136,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     token,
     login: handleLogin,
+    register: handleRegister,
     logout: handleLogout,
     hasRole: handleHasRole,
     isAdmin: handleIsAdmin,
