@@ -73,7 +73,7 @@ services:
     environment:
       - NEXT_PUBLIC_API_BASE_URL=http://api:5000
       - NEXT_PUBLIC_USE_MOCKS=false
-      - NEXT_PUBLIC_KEYCLOAK_URL=http://keycloak:8080
+      - NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
       - NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
       - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
     depends_on:
@@ -84,16 +84,17 @@ services:
       timeout: 10s
       retries: 3
 
-  # ---------- Nginx (comentado por enquanto) ----------
-  # nginx:
-  #   image: nginx:alpine
-  #   ports:
-  #     - "80:80"
-  #   volumes:
-  #     - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-  #   depends_on:
-  #     - api
-  #     - frontend
+  # ---------- Nginx ----------
+  nginx:
+    image: nginx:alpine
+    container_name: kitcerto-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - api
+      - frontend
 
 volumes:
   mongo_data:

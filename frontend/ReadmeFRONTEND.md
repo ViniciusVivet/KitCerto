@@ -82,18 +82,21 @@ Integração completa com API backend implementada com **fallback inteligente** 
 - ✅ Serviços HTTP implementados com fallback inteligente (API → mocks)
 - ✅ Feature-flag configurada (`NEXT_PUBLIC_USE_MOCKS`)
 - ✅ TanStack Query para gerenciamento de estado
-- ✅ **Docker Compose de desenvolvimento**: frontend integrado e funcionando perfeitamente
-- ✅ **Autenticação Keycloak**: login/logout, proteção de rotas e guards de ações funcionando perfeitamente
-- ✅ **Proteção de rotas**: Dashboard protegido para role `admin`, outras rotas para `user`
-- ⏳ Nginx/Compose: adicionar serviço `frontend` e roteamento `/api` → API
+- ✅ **Docker Compose de desenvolvimento**: frontend integrado e funcionando via **Nginx (http://localhost)**
+- ✅ **Autenticação Keycloak**: login/logout, proteção de rotas e guards de ações funcionando
+- ✅ **Proteção de rotas**: Dashboard protegido para role `admin`, demais rotas para `user`
 
 ### Configuração de Ambiente
 
 #### Docker Compose (Automático)
-No Docker Compose de desenvolvimento, as variáveis são configuradas automaticamente:
+No Docker Compose de desenvolvimento, as variáveis são configuradas automaticamente (
+`docker-compose.dev.yml`):
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://api:5000
 NEXT_PUBLIC_USE_MOCKS=false
+NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
+NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
+NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
 ```
 
 #### Desenvolvimento Local
@@ -108,8 +111,11 @@ NEXT_PUBLIC_USE_MOCKS=true
 
 ## 📝 Notas
 
-- O projeto usa **Tailwind 3** (com mapeamento de tokens CSS) e **shadcn/ui**.
-- Para ambiente Windows, use **Node 20 LTS** para evitar instabilidades do dev overlay.
+- O projeto usa **Tailwind 3** (com tokens) e **shadcn/ui**.
+- Em DEV via Nginx, garanta no Keycloak (client `kitcerto-frontend`):
+  - **Valid Redirect URIs**: `http://localhost/*`
+  - **Web Origins**: `http://localhost`
+- No acesso direto (sem Nginx), mantenha também `http://localhost:3000/*` e Web Origin `http://localhost:3000`.
 
 ---
 

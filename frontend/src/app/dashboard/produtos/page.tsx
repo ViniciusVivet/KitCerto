@@ -44,16 +44,16 @@ export default function ProdutosPage() {
     if (editing?.id) {
       updateMut.mutate(
         { id: editing.id, payload },
-        { onSuccess: () => toast.success("Editado com sucesso"), onError: () => toast.error("Falha ao editar") }
+        { onSuccess: () => notify({ title: "Editado com sucesso", variant: "success" }), onError: () => notify({ title: "Falha ao editar", variant: "error" }) }
       );
     } else {
-      createMut.mutate(payload, { onSuccess: () => toast.success("Criado com sucesso"), onError: () => toast.error("Falha ao criar") });
+      createMut.mutate(payload, { onSuccess: () => notify({ title: "Criado com sucesso", variant: "success" }), onError: () => notify({ title: "Falha ao criar", variant: "error" }) });
     }
     setEditing(null);
     e.currentTarget.reset();
   }
 
-  const { toast } = useToast();
+  const { notify } = useToast();
 
   return (
     <ProtectedRoute requiredRole="admin">
@@ -126,7 +126,7 @@ export default function ProdutosPage() {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => deleteMut.mutate(p.id, { onSuccess: () => toast.success("Excluído com sucesso"), onError: () => toast.error("Falha ao excluir") })}
+                      onClick={() => deleteMut.mutate(p.id, { onSuccess: () => notify({ title: "Excluído com sucesso", variant: "success" }), onError: () => notify({ title: "Falha ao excluir", variant: "error" }) })}
                     >
                       Excluir
                     </Button>

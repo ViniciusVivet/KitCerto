@@ -45,10 +45,11 @@ docker compose -f docker-compose.dev.yml up -d --build
 > **Nota**: Este comando sobe todos os serviços incluindo o frontend, que se conecta automaticamente com a API.
 
 ### 4) URLs
-- API: http://localhost:5000  
+- Frontend (via Nginx): http://localhost  
+- API (via Nginx): http://localhost/api  
+- API direta: http://localhost:5000  
 - Swagger: http://localhost:5000/swagger  
 - Keycloak: http://localhost:8080  
-- Frontend: http://localhost:3000  
 - (Opcional) Mongo Express: http://localhost:8081
 
 ---
@@ -56,13 +57,14 @@ docker compose -f docker-compose.dev.yml up -d --build
 ## 🖥️ Frontend
 
 ### Via Docker Compose (Recomendado)
-O frontend já está integrado no **Docker Compose de desenvolvimento** e se conecta automaticamente com a API:
+O frontend já está integrado no **Docker Compose de desenvolvimento** e se conecta automaticamente com a API. O acesso padrão é via **Nginx**:
 
 ```bash
 # Subir todos os serviços (incluindo frontend)
 docker compose -f docker-compose.dev.yml up -d --build
 
-# Acessar: http://localhost:3000
+# Acessar: http://localhost (via Nginx)
+# Alternativa direta: http://localhost:3000
 ```
 
 > **Status**: ✅ **Funcionando perfeitamente** - Frontend consumindo API, dados MongoDB preservados, Keycloak ativo.
@@ -87,7 +89,9 @@ Mais detalhes: `frontend/ReadmeFRONTEND.md`.
 - **admin@kitcerto.dev** / `Admin@123` → role **admin**
 - **joao@kitcerto.dev** / `User@123` → role **user**
 
-> O cliente `kitcerto-api` tem **default client scopes** `profile`, `email` e `roles` (necessário para o JWT carregar `realm_access.roles`).
+> O cliente `kitcerto-api` tem **default client scopes** `profile`, `email` e `roles` (necessário para o JWT carregar `realm_access.roles`). Para o cliente `kitcerto-frontend`, em **DEV**, inclua:
+> - Valid Redirect URIs: `http://localhost/*` (e `http://localhost:3000/*` se acessar a porta direta)
+> - Web Origins: `http://localhost` (e `http://localhost:3000` se necessário)
 
 ### Token (Postman/cURL)
 POST `http://localhost:8080/realms/kitcerto/protocol/openid-connect/token`
@@ -161,8 +165,9 @@ Swagger: **/swagger**
 - ✅ Frontend: serviços HTTP implementados com fallback inteligente (API → mocks)
 - ✅ Docker Compose: frontend integrado e funcionando perfeitamente
 - ✅ Frontend: integração Keycloak (login/logout, guards) funcionando perfeitamente
-- ⏳ Nginx: reverse proxy (`/api` → API, `/` → Front), adicionar serviço no Compose
-- ⏳ Cache de listas (IMemoryCache/ETag), seeds & testes de integração (xUnit + FluentAssertions)
+- ✅ Nginx: reverse proxy ativo (`/api` → API, `/` → Front)
+- ⏳ CRUD de categorias (frontend) e ação “atualizar estoque” (UI)
+- ⏳ Cache de dashboard e testes (xUnit/RTL)
 
 ---
 
