@@ -25,17 +25,19 @@ namespace KitCerto.Application.Dashboard.Overview
             var totalValue = await _products.TotalStockValueAsync(ct);
             var byCat = await _products.CountByCategoryAsync(ct);
 
-            // enriquecer com nome da categoria (opcional)
-            var enriched = await Task.WhenAll(byCat.Select(async c =>
-            {
-                var cat = await _categories.GetByIdAsync(c.CategoryId, ct);
-                return new DashboardByCategoryItem
+            // enriquecer com nome da categoria (batch): carrega uma página "grande" de categorias
+            // e monta um dicionário id->name para evitar múltiplas idas ao banco
+            var allCategories = await _categories.ListAsync(page: 1, pageSize: 1000, ct);
+            var idToName = allCategories.ToDictionary(c => c.Id, c => c.Name);
+
+            var enriched = byCat
+                .Select(c => new DashboardByCategoryItem
                 {
                     CategoryId = c.CategoryId,
-                    CategoryName = cat?.Name,
+                    CategoryName = idToName.TryGetValue(c.CategoryId, out var name) ? name : null,
                     Count = c.Count
-                };
-            }));
+                })
+                .ToArray();
 
             return new DashboardOverviewDto
             {

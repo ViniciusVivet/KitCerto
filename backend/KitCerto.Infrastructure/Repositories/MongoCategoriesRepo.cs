@@ -5,6 +5,8 @@ using KitCerto.Domain.Categories;
 using KitCerto.Domain.Repositories;
 using KitCerto.Infrastructure.Data;
 using MongoDB.Driver;
+using MongoDB.Bson;
+using System.Reflection;
 
 namespace KitCerto.Infrastructure.Repositories
 {
@@ -26,8 +28,14 @@ namespace KitCerto.Infrastructure.Repositories
 
         public async Task<Category?> GetByIdAsync(string id, CancellationToken ct)
         {
-            var filter = Builders<Category>.Filter.Eq(x => x.Id, id);
-            return await _col.Find(filter).FirstOrDefaultAsync(ct);
+            // Evita problemas de deserialização mapeando manualmente
+            var filter = Builders<BsonDocument>.Filter.Eq("Id", id);
+            var doc = await _col.Database.GetCollection<BsonDocument>("categories")
+                .Find(filter)
+                .Project(Builders<BsonDocument>.Projection.Include("Id").Include("Name").Include("Description"))
+                .FirstOrDefaultAsync(ct);
+            if (doc is null) return null;
+            return MapCategory(doc);
         }
 
         public async Task<IReadOnlyList<Category>> ListAsync(int page, int pageSize, CancellationToken ct)
@@ -36,11 +44,33 @@ namespace KitCerto.Infrastructure.Repositories
             if (pageSize <= 0) pageSize = 20;
 
             var skip = (page - 1) * pageSize;
+            var docs = await _col.Database.GetCollection<BsonDocument>("categories")
+                .Find(FilterDefinition<BsonDocument>.Empty)
+                .Project(Builders<BsonDocument>.Projection.Include("Id").Include("Name").Include("Description"))
+                .Skip(skip)
+                .Limit(pageSize)
+                .ToListAsync(ct);
 
-            return await _col.Find(FilterDefinition<Category>.Empty)
-                             .Skip(skip)
-                             .Limit(pageSize)
-                             .ToListAsync(ct);
+            var list = new List<Category>(docs.Count);
+            foreach (var d in docs)
+                list.Add(MapCategory(d));
+            return list;
+        }
+
+        private static Category MapCategory(BsonDocument doc)
+        {
+            var name = doc.GetValue("Name", BsonNull.Value).IsBsonNull ? string.Empty : doc["Name"].AsString;
+            var desc = doc.GetValue("Description", BsonNull.Value).IsBsonNull ? string.Empty : doc["Description"].AsString;
+            var c = new Category(name, desc);
+
+            string id = doc.Contains("Id") && doc["Id"].BsonType == BsonType.String
+                ? doc["Id"].AsString
+                : doc.Contains("_id") ? doc["_id"].ToString() : string.Empty;
+
+            typeof(Category).GetProperty(nameof(Category.Id), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
+                .SetValue(c, id);
+
+            return c;
         }
     }
 }

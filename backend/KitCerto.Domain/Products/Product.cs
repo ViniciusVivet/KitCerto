@@ -1,23 +1,24 @@
 using System;
+using MongoDB.Bson.Serialization.Attributes;
 
 namespace KitCerto.Domain.Products
 {
     public sealed class Product
     {
-        public string Id { get; private set; } = string.Empty;
+        [BsonElement("Id")] public string Id { get; private set; } = string.Empty;
 
-        public string Name { get; private set; } = string.Empty;
-        public string Description { get; private set; } = string.Empty;
+        [BsonElement("Name")] public string Name { get; private set; } = string.Empty;
+        [BsonElement("Description")] public string Description { get; private set; } = string.Empty;
 
-        public decimal Price { get; private set; }
+        [BsonElement("Price")] public decimal Price { get; private set; }
 
-        public string CategoryId { get; private set; } = string.Empty;
+        [BsonElement("CategoryId")] public string CategoryId { get; private set; } = string.Empty;
 
-        public int Quantity { get; private set; }
+        [BsonElement("Quantity")] public int Quantity { get; private set; }
 
-        public int Stock { get; private set; }
+        [BsonElement("Stock")] public int Stock { get; private set; }
 
-        public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
+        [BsonElement("CreatedAtUtc")] public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
 
         // 👇 Agora o construtor aceita 6 argumentos (incluindo stock)
         public Product(
@@ -35,5 +36,8 @@ namespace KitCerto.Domain.Products
             Quantity    = quantity;
             Stock       = stock;
         }
+
+        // Necessário para deserialização do MongoDB.Driver / EF Mongo
+        public Product() { }
     }
 }

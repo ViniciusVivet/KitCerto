@@ -1,6 +1,5 @@
 <Project>
   <ItemGroup>
-    <PackageVersion Include="MongoDB.Driver" Version="3.1.0" />
     <PackageVersion Include="AspNetCore.HealthChecks.MongoDb" Version="9.0.0" />
   </ItemGroup>
 </Project>

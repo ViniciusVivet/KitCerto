@@ -7,12 +7,14 @@ namespace KitCerto.Infrastructure.Data
     {
         public IMongoDatabase Db { get; }
 
-        public MongoContext(IMongoClient client, IConfiguration cfg)
+        public MongoContext(IConfiguration cfg)
         {
-            var dbName = cfg["Database:Name"];
+            var cs = cfg.GetConnectionString("Mongo") ?? "mongodb://localhost:27017/kitcerto";
+            var dbName = cfg["Mongo:DatabaseName"];
             if (string.IsNullOrWhiteSpace(dbName))
                 dbName = "kitcerto";
 
+            var client = new MongoClient(cs);
             Db = client.GetDatabase(dbName);
         }
     }

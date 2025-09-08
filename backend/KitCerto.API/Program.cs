@@ -170,11 +170,8 @@ builder.Services.AddTransient<IRequestHandler<DashboardOverviewQuery, DashboardO
 // Infra (Mongo + Repositórios)
 builder.Services.AddInfrastructure(builder.Configuration);
 
-// HealthChecks (Mongo)
-var cs = builder.Configuration.GetConnectionString("Mongo")
-         ?? throw new InvalidOperationException("Missing connection string 'Mongo'");
-builder.Services.AddHealthChecks()
-    .AddMongoDb(sp => new MongoClient(cs), name: "mongo");
+// HealthChecks simples (sem package específico)
+builder.Services.AddHealthChecks();
 
 // Serilog
 builder.Host.UseSerilog((ctx, lc) =>
