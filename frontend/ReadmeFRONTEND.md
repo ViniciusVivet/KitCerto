@@ -89,15 +89,22 @@ Integração completa com API backend implementada com **fallback inteligente** 
 ### Configuração de Ambiente
 
 #### Docker Compose (Automático)
-No Docker Compose de desenvolvimento, as variáveis são configuradas automaticamente (
-`docker-compose.dev.yml`):
-```bash
-NEXT_PUBLIC_API_BASE_URL=http://api:5000
-NEXT_PUBLIC_USE_MOCKS=false
-NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
-NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
-NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
-```
+- Dev (`docker-compose.dev.yml`):
+  ```bash
+  NEXT_PUBLIC_API_BASE_URL=/api
+  NEXT_PUBLIC_USE_MOCKS=false
+  NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
+  NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
+  NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
+  ```
+- Prod-like (`infra/docker-compose.yml`):
+  ```bash
+  NEXT_PUBLIC_API_BASE_URL=/api
+  NEXT_PUBLIC_USE_MOCKS=false
+  NEXT_PUBLIC_KEYCLOAK_URL=http://localhost:8080
+  NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
+  NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
+  ```
 
 #### Desenvolvimento Local
 ```bash
@@ -112,7 +119,7 @@ NEXT_PUBLIC_USE_MOCKS=true
 ## 📝 Notas
 
 - O projeto usa **Tailwind 3** (com tokens) e **shadcn/ui**.
-- Em DEV via Nginx, garanta no Keycloak (client `kitcerto-frontend`):
+- Em DEV via Nginx e no prod-like, garanta no Keycloak (client `kitcerto-frontend`):
   - **Valid Redirect URIs**: `http://localhost/*`
   - **Web Origins**: `http://localhost`
 - No acesso direto (sem Nginx), mantenha também `http://localhost:3000/*` e Web Origin `http://localhost:3000`.

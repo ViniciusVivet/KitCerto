@@ -37,19 +37,26 @@ Na raiz do repositório:
 cp .env.example .env
 ```
 
-### 3) Subir serviços (API, Mongo, Keycloak, Frontend)
+### 3) Subir serviços (escolha um perfil)
+
+Dev (com Nginx):
 ```bash
 docker compose -f docker-compose.dev.yml up -d --build
 ```
 
-> **Nota**: Este comando sobe todos os serviços incluindo o frontend, que se conecta automaticamente com a API.
+Prod-like (infra com Postgres + Keycloak start):
+```bash
+docker compose -f infra/docker-compose.yml up -d --build
+```
+
+> Dica: derrube a stack anterior antes de subir a outra (`docker compose down --remove-orphans`).
 
 ### 4) URLs
 - Frontend (via Nginx): http://localhost  
 - API (via Nginx): http://localhost/api  
 - API direta: http://localhost:5000  
 - Swagger: http://localhost:5000/swagger  
-- Keycloak: http://localhost:8080  
+- Keycloak: http://localhost:8080 (em prod-like usa Postgres, registro pode vir desativado)  
 - (Opcional) Mongo Express: http://localhost:8081
 
 ---

@@ -20,6 +20,14 @@ namespace KitCerto.API.Swagger
                     Version = "v1",
                     Description = "API de gestão de produtos (Clean Architecture + CQRS + Mongo)."
                 });
+                // Incluir XML comments se gerado (melhora descrições no Swagger)
+                try
+                {
+                    var xml = System.IO.Path.Combine(AppContext.BaseDirectory, "KitCerto.API.xml");
+                    if (System.IO.File.Exists(xml))
+                        c.IncludeXmlComments(xml);
+                }
+                catch { /* opcional */ }
 
                 // Bearer simples (para testes rápidos)
                 var bearer = new OpenApiSecurityScheme
@@ -38,11 +46,31 @@ namespace KitCerto.API.Swagger
                 });
 
                 // OAuth2 (Keycloak) – Authorization Code + PKCE
-                var authority = cfg["Auth:Authority"]?.TrimEnd('/');
-                var realm     = cfg["Auth:Realm"];
-                var audience  = cfg["Auth:Audience"];
+                // Suporta duas formas de configuração:
+                // 1) Auth:Authority = http://keycloak:8080  +  Auth:Realm = kitcerto
+                // 2) Auth:Authority = http://keycloak:8080/realms/kitcerto  (Auth:Realm opcional)
+                var authorityRaw = cfg["Auth:Authority"]?.TrimEnd('/');
+                var realmConfig  = cfg["Auth:Realm"];
+                var audience     = cfg["Auth:Audience"];
 
-                if (!string.IsNullOrWhiteSpace(authority) && !string.IsNullOrWhiteSpace(realm))
+                string? realm = realmConfig;
+                string? authorityBase = authorityRaw;
+
+                if (!string.IsNullOrWhiteSpace(authorityRaw))
+                {
+                    var marker = "/realms/";
+                    var idx = authorityRaw.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
+                    if (idx >= 0)
+                    {
+                        var baseUrl = authorityRaw.Substring(0, idx);
+                        var realmFromAuthority = authorityRaw.Substring(idx + marker.Length);
+                        if (string.IsNullOrWhiteSpace(realm))
+                            realm = realmFromAuthority;
+                        authorityBase = baseUrl.TrimEnd('/');
+                    }
+                }
+
+                if (!string.IsNullOrWhiteSpace(authorityBase) && !string.IsNullOrWhiteSpace(realm))
                 {
                     c.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
                     {
@@ -51,8 +79,8 @@ namespace KitCerto.API.Swagger
                         {
                             AuthorizationCode = new OpenApiOAuthFlow
                             {
-                                AuthorizationUrl = new Uri($"{authority}/realms/{realm}/protocol/openid-connect/auth"),
-                                TokenUrl         = new Uri($"{authority}/realms/{realm}/protocol/openid-connect/token"),
+                                AuthorizationUrl = new Uri($"{authorityBase}/realms/{realm}/protocol/openid-connect/auth"),
+                                TokenUrl         = new Uri($"{authorityBase}/realms/{realm}/protocol/openid-connect/token"),
                                 Scopes = new Dictionary<string,string>
                                 {
                                     { audience ?? "api", "Acesso à API KitCerto" }

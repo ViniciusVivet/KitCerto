@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Instalar dependências baseadas no gerenciador de pacotes preferido
 COPY package.json package-lock.json* ./
-RUN npm ci --only=production
+RUN npm ci
 
 # Rebuild do código fonte apenas quando necessário
 FROM base AS builder
@@ -46,5 +46,8 @@ EXPOSE 3000
 
 ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
+
+# Healthcheck nativo (sem curl/wget)
+HEALTHCHECK CMD node -e "require('http').get('http://localhost:3000',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
 
 CMD ["node", "server.js"]

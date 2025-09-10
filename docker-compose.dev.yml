@@ -7,20 +7,19 @@ services:
   mongo:
     image: mongo:6.0        # (use 6.0 como você já vinha usando)
     container_name: kitcerto-mongo
-    ports:
-      - "27017:27017"
     volumes:
       - mongo_data:/data/db
-    # healthcheck:
-    #   test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
-    #   interval: 10s
-    #   timeout: 5s
-    #   retries: 5
+    healthcheck:
+      test: ["CMD-SHELL", "mongosh --quiet --eval 'db.runCommand({ ping: 1 }).ok' | grep 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
 
   # ---------- Keycloak ----------
-
   keycloak:
-    image: quay.io/keycloak/keycloak:24.0
+    image: quay.io/keycloak/keycloak:26.0
     container_name: kitcerto-keycloak
     command: ["start-dev", "--http-port=8080", "--import-realm"]
     environment:
@@ -29,13 +28,17 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      # IMPORT do realm - monta o diretório inteiro
       - ./infra/keycloak:/opt/keycloak/data/import:ro
-      # PERSISTÊNCIA dos dados do Keycloak
       - keycloak_data:/opt/keycloak/data
     restart: unless-stopped
-
-
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/realms/kitcerto/.well-known/openid-configuration >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - internal
+      - public
 
   # ---------- API ----------
   api:
@@ -46,21 +49,17 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://0.0.0.0:5000
-      # Appsettings.Docker.json espera "ConnectionStrings:Mongo" e Auth
       ConnectionStrings__Mongo: mongodb://mongo:27017/kitcerto
       Auth__Authority: http://keycloak:8080/realms/kitcerto
       Auth__Audience: kitcerto-api
-      Cors__Origins: http://localhost:3000;http://localhost;http://frontend:3000
     depends_on:
-      - mongo
-      - keycloak
-    ports:
-      - "5000:5000"
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"]
-      interval: 10s
-      timeout: 3s
-      retries: 10
+      mongo:
+        condition: service_healthy
+      keycloak:
+        condition: service_started
+    # Healthcheck removido em dev para evitar dependência de wget/curl
+    networks:
+      - internal
 
   # ---------- Frontend ----------
   frontend:
@@ -68,8 +67,6 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    ports:
-      - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=/api
       - NEXT_PUBLIC_USE_MOCKS=false
@@ -77,12 +74,13 @@ services:
       - NEXT_PUBLIC_KEYCLOAK_REALM=kitcerto
       - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
     depends_on:
-      - api
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:3000 || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+      api:
+        condition: service_started
+      keycloak:
+        condition: service_started
+    # Healthcheck do frontend movido para Dockerfile (nativo Node)
+    networks:
+      - internal
 
   # ---------- Nginx ----------
   nginx:
@@ -93,9 +91,23 @@ services:
     volumes:
       - ./infra/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
-      - api
-      - frontend
+      api:
+        condition: service_started
+      frontend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    networks:
+      - internal
+      - public
 
 volumes:
   mongo_data:
   keycloak_data:
+
+networks:
+  internal:
+  public:

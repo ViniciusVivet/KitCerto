@@ -29,8 +29,14 @@ ConnectionStrings__Mongo=mongodb://localhost:27017
 Mongo__DatabaseName=kitcerto
 
 # Auth (Keycloak)
-Auth__Authority=http://localhost:8080/realms/kitcerto
+# Forma 1 (recomendada): base + realm
+Auth__Authority=http://localhost:8080
+Auth__Realm=kitcerto
 Auth__Audience=kitcerto-api
+
+# Forma 2: Authority já com /realms/kitcerto (o Swagger trata a duplicação)
+# Auth__Authority=http://localhost:8080/realms/kitcerto
+# Auth__Audience=kitcerto-api
 ```
 
 ## Pacotes

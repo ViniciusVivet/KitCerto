@@ -42,8 +42,8 @@
         "access.token.lifespan": "3600"
       },
       "defaultClientScopes": ["profile", "email", "roles"],
-      "redirectUris": ["http://localhost:3000/*", "http://frontend:3000/*"],
-      "webOrigins": ["http://localhost:3000", "http://frontend:3000"]
+      "redirectUris": ["http://localhost/*", "http://localhost:3000/*", "http://frontend:3000/*"],
+      "webOrigins": ["http://localhost", "http://localhost:3000", "http://frontend:3000"]
     }
   ],
   "users": [

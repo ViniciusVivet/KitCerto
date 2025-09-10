@@ -16,13 +16,18 @@ API do e‑commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Key
 
 1. Configure o ambiente:
    ```bash
-   cp infra/.env.example infra/.env
+   cp .env.example .env
    ```
 
-2. Suba a infraestrutura (MongoDB + Keycloak):
-   ```bash
-   docker compose up -d
-   ```
+2. Suba a infraestrutura (escolha um):
+   - Dev (com Nginx e frontend):
+     ```bash
+     docker compose -f docker-compose.dev.yml up -d --build
+     ```
+   - Prod-like (infra com Postgres + Keycloak start):
+     ```bash
+     docker compose -f infra/docker-compose.yml up -d --build
+     ```
 
 3. Restaure e compile:
    ```bash
@@ -67,9 +72,11 @@ Endpoints principais:
 - docker compose up -d → sobe infraestrutura  
 
 ## 🔐 Autenticação
-- Keycloak configurado (realm `kitcerto`, client `kitcerto-api`).
+- Keycloak configurado (realm `kitcerto`, clients `kitcerto-api` e `kitcerto-frontend`).
 - Roles via JWT mapeadas para claims .NET (`ClaimTypes.Role`).
 - Usuários de teste: `admin@kitcerto.dev` (admin), `joao@kitcerto.dev` (user).
+  
+> Swagger OAuth: garanta `Auth:Realm=kitcerto`. Se `Auth:Authority` já contiver `/realms/kitcerto`, o código do Swagger já trata para não duplicar o caminho.
 
 ## ⚙️ Operação
 - ProblemDetails (middleware): disponível; habilitar no pipeline se desejar respostas padronizadas.

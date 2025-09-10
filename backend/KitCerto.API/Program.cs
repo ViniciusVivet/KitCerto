@@ -185,8 +185,7 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
-app.UseSwagger();
-app.UseSwaggerUI();
+app.UseSwaggerDocumentation(builder.Configuration);
 
 app.UseCors("Frontend");
 
