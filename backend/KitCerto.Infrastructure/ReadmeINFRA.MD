@@ -1,4 +1,5 @@
-    # Infraestrutura (dev e prod-like)
+# KitCerto Infrastructure
+
 Camada que **fala com o mundo externo**.
 
 ## Serviços
@@ -28,3 +29,9 @@ Auth__Realm=kitcerto
 ### Compose
 - Dev: `docker-compose.dev.yml` (frontend + nginx)
 - Prod-like: `infra/docker-compose.yml` (Keycloak + Postgres persistente)
+
+## ⚠️ Problemas Conhecidos
+- Healthchecks podem falhar durante inicialização
+- Volumes não são persistentes por padrão
+- Dockerfiles não otimizados (sem multi-stage build)
+- Configurações de ambiente inconsistentes entre arquivos

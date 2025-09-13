@@ -45,7 +45,7 @@ API do e‑commerce **KitCerto**, construída com **.NET 9**, **MongoDB**, **Key
    - Swagger: http://localhost:5000/swagger
    - Health: http://localhost:5000/health
 
-> Frontend (mock‑first) roda à parte por enquanto. Veja `frontend/ReadmeFRONTEND.md`.
+> Frontend integrado via Docker Compose. Veja `frontend/ReadmeFRONTEND.md` para detalhes.
 
 ---
 

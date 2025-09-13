@@ -1,6 +1,6 @@
-# 💎 KitCerto — Backend, Infra e Frontend (mock) do Desafio Hypesoft
+# 💎 KitCerto — Backend, Infra e Frontend do Desafio Hypesoft
 
-**KitCerto** é um sistema moderno de gestão de produtos. Este repositório reúne **Backend (.NET 9 + MongoDB + Keycloak)**, **Infra (Docker Compose)** e um **Frontend (Next.js 14, mock‑first)** para validação visual/UX antes da integração real.
+**KitCerto** é um sistema moderno de gestão de produtos. Este repositório reúne **Backend (.NET 9 + MongoDB + Keycloak)**, **Infra (Docker Compose)** e um **Frontend (Next.js 14)** com integração completa à API.
 
 ## ✨ Destaques Técnicos
 - Backend: **.NET 9** · **Clean Architecture** · **DDD light** · **CQRS + MediatR** · **MongoDB (MongoDB.Driver)**
@@ -9,7 +9,7 @@
 - Docker Compose: **API, Keycloak, Mongo** (opcional: **Mongo Express**)
 - Frontend: **Next.js 14** · **TypeScript** · **Tailwind 3** · **shadcn/ui** · **TanStack Query** · **Chart.js** · **API Integration**
 
-> Status: **100% COMPLETO** - Desafio Hypesoft totalmente implementado! Backend (.NET 9 + MongoDB + Keycloak), Frontend (Next.js 14 + TypeScript + Tailwind), Infra (Docker Compose), Autenticação Keycloak funcionando perfeitamente, CRUD completo, Dashboard interativo, Proteção de rotas por roles. **Sistema e-commerce completo e funcional!**
+> Status: **EM DESENVOLVIMENTO** - Sistema e-commerce com Backend (.NET 9 + MongoDB + Keycloak), Frontend (Next.js 14 + TypeScript + Tailwind), Infra (Docker Compose). Autenticação Keycloak implementada, CRUD básico funcionando, Dashboard em desenvolvimento. **Veja a [CHECKLIST_PROBLEMAS.md](./CHECKLIST_PROBLEMAS.md) para status detalhado.**
 
 ---
 
@@ -20,7 +20,7 @@
 - Autenticação/Autorização com Keycloak (roles)
 - Performance: paginação, filtros, boas práticas
 - Infra: Docker + Compose
-- Frontend: Next.js (integração API completa com fallback para mocks)
+- Frontend: Next.js (integração API completa com fallback inteligente para mocks)
 
 ---
 
@@ -74,7 +74,7 @@ docker compose -f docker-compose.dev.yml up -d --build
 # Alternativa direta: http://localhost:3000
 ```
 
-> **Status**: ✅ **Funcionando perfeitamente** - Frontend consumindo API, dados MongoDB preservados, Keycloak ativo.
+> **Status**: ✅ **Funcional** - Frontend integrado com API, dados MongoDB disponíveis, Keycloak configurado. Alguns problemas de performance e configuração identificados - veja [CHECKLIST_PROBLEMAS.md](./CHECKLIST_PROBLEMAS.md).
 
 ### Desenvolvimento Local (Opcional)
 Para desenvolvimento local com hot-reload:
@@ -168,13 +168,13 @@ Swagger: **/swagger**
 
 ---
 
-## 🧱 Próximos passos
+## 🧱 Status do Projeto
 - ✅ Frontend: serviços HTTP implementados com fallback inteligente (API → mocks)
-- ✅ Docker Compose: frontend integrado e funcionando perfeitamente
-- ✅ Frontend: integração Keycloak (login/logout, guards) funcionando perfeitamente
+- ✅ Docker Compose: frontend integrado e funcionando
+- ✅ Frontend: integração Keycloak (login/logout, guards) implementada
 - ✅ Nginx: reverse proxy ativo (`/api` → API, `/` → Front)
-- ⏳ CRUD de categorias (frontend) e ação “atualizar estoque” (UI)
-- ⏳ Cache de dashboard e testes (xUnit/RTL)
+- ⚠️ **Problemas identificados**: Veja [CHECKLIST_PROBLEMAS.md](./CHECKLIST_PROBLEMAS.md) para lista completa
+- 🔧 **Próximos passos**: Corrigir problemas de segurança, performance e configuração
 
 ---
 

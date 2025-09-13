@@ -57,7 +57,8 @@ dotnet restore
 - Auth util: `GET /api/auth/ping`, `GET /whoami` (info do usuário logado)
 
 ## Integração Frontend
-- ✅ CORS configurado para `http://localhost:3000`
+- ✅ CORS configurado para múltiplas origens (localhost:3000, localhost, frontend:3000)
 - ✅ Endpoints testados e funcionais
 - ✅ Fallback inteligente implementado no frontend
+- ⚠️ **Problemas identificados**: Validação de audience desabilitada, HTTPS desabilitado em dev
 
