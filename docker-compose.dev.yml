@@ -17,6 +17,21 @@ services:
     networks:
       - internal
 
+  # ---------- Mongo Express ----------
+  mongo-express:
+    image: mongo-express:1.0.2-20
+    container_name: kitcerto-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - internal
+
   # ---------- Keycloak ----------
   keycloak:
     image: quay.io/keycloak/keycloak:26.0
@@ -46,6 +61,8 @@ services:
     build:
       context: .
       dockerfile: backend/KitCerto.API/Dockerfile
+    ports:
+      - "5000:5000"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
       ASPNETCORE_URLS: http://0.0.0.0:5000
