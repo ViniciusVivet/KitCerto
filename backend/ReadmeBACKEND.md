@@ -60,6 +60,7 @@ Endpoints principais:
 - Categorias: `GET/POST /api/categories`
 - Produtos: `GET /api/products`, `POST/PUT/DELETE /api/products/{id}`, `PUT /api/products/{id}/stock`
 - Dashboard: `GET /api/dashboard/overview`
+- Sellers: `POST /api/sellers/requests`, `GET /api/sellers/requests`, `POST /api/sellers/requests/{id}/approve`, `POST /api/sellers/requests/{id}/reject`
 - Auth util: `GET /api/auth/ping`
 
 ---
@@ -79,10 +80,11 @@ Endpoints principais:
 > Swagger OAuth: garanta `Auth:Realm=kitcerto`. Se `Auth:Authority` já contiver `/realms/kitcerto`, o código do Swagger já trata para não duplicar o caminho.
 
 ## ⚙️ Operação
-- ProblemDetails (middleware): disponível; habilitar no pipeline se desejar respostas padronizadas.
-- Rate limiting: janela fixa (100 req/min)
+- ProblemDetails: habilitado no pipeline para respostas padronizadas.
+- Rate limiting: políticas `api` (100 req/min), `auth` (30 req/min), `health` (300 req/min).
 - Health checks: `/health` (Mongo)
 - Logs: Serilog (console)
+- Cache: dashboard com TTL curto em memória.
 
 ---
 
