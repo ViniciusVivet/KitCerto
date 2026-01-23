@@ -27,11 +27,13 @@ namespace KitCerto.Infrastructure.DependencyInjection
                 // Usa EF para produtos e Mongo driver para categorias (compatibilidade com campo "Id")
                 services.AddScoped<IProductsRepo, EfProductsRepo>();
                 services.AddScoped<ICategoriesRepo, MongoCategoriesRepo>();
+                services.AddScoped<ISellerRequestsRepo, MongoSellerRequestsRepo>();
             }
             else
             {
                 services.AddScoped<IProductsRepo, MongoProductsRepo>();
                 services.AddScoped<ICategoriesRepo, MongoCategoriesRepo>();
+                services.AddScoped<ISellerRequestsRepo, MongoSellerRequestsRepo>();
             }
 
             return services;
