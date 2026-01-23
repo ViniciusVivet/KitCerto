@@ -98,6 +98,54 @@ public sealed class EfProductsRepo : IProductsRepo
             .ToListAsync(ct);
         return data;
     }
+
+    public async Task<IReadOnlyList<CategoryValue>> ValueByCategoryAsync(CancellationToken ct)
+    {
+        var data = await _db.Products.AsQueryable()
+            .GroupBy(x => x.CategoryId)
+            .Select(g => new CategoryValue { CategoryId = g.Key, TotalValue = g.Sum(x => x.Price * x.Stock) })
+            .ToListAsync(ct);
+        return data;
+    }
+
+    public async Task<IReadOnlyList<Product>> TopProductsByValueAsync(int limit, CancellationToken ct)
+    {
+        return await _db.Products.AsQueryable()
+            .OrderByDescending(x => x.Price * x.Stock)
+            .Take(limit)
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<PriceBucket>> PriceBucketsAsync(CancellationToken ct)
+    {
+        var buckets = new List<PriceBucket>();
+        
+        // Buckets: 0-50, 50-100, 100-200, 200-500, 500+
+        var ranges = new[]
+        {
+            new { Min = 0m, Max = 50m, Label = "R$ 0 - R$ 50" },
+            new { Min = 50m, Max = 100m, Label = "R$ 50 - R$ 100" },
+            new { Min = 100m, Max = 200m, Label = "R$ 100 - R$ 200" },
+            new { Min = 200m, Max = 500m, Label = "R$ 200 - R$ 500" },
+            new { Min = 500m, Max = decimal.MaxValue, Label = "R$ 500+" }
+        };
+
+        foreach (var range in ranges)
+        {
+            var count = await _db.Products.AsQueryable()
+                .CountAsync(x => x.Price >= range.Min && x.Price < range.Max, ct);
+            buckets.Add(new PriceBucket { Range = range.Label, Count = count });
+        }
+
+        return buckets;
+    }
+
+    public async Task<IReadOnlyList<Product>> LowStockItemsAsync(int threshold, CancellationToken ct)
+    {
+        return await _db.Products.AsQueryable()
+            .Where(x => x.Stock < threshold)
+            .ToListAsync(ct);
+    }
 }
 
 

@@ -30,6 +30,14 @@ public sealed class EfCategoriesRepo : ICategoriesRepo
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(ct);
+
+    public async Task<IReadOnlyList<Category>> GetByIdsAsync(IReadOnlyCollection<string> ids, CancellationToken ct)
+    {
+        if (ids.Count == 0) return [];
+        return await _db.Categories.AsQueryable()
+            .Where(x => ids.Contains(x.Id))
+            .ToListAsync(ct);
+    }
 }
 
 

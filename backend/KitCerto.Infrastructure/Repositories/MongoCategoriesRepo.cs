@@ -57,6 +57,26 @@ namespace KitCerto.Infrastructure.Repositories
             return list;
         }
 
+        public async Task<IReadOnlyList<Category>> GetByIdsAsync(IReadOnlyCollection<string> ids, CancellationToken ct)
+        {
+            if (ids.Count == 0) return [];
+
+            var col = _col.Database.GetCollection<BsonDocument>("categories");
+            var filter = Builders<BsonDocument>.Filter.Or(
+                Builders<BsonDocument>.Filter.In("Id", ids),
+                Builders<BsonDocument>.Filter.In("_id", ids)
+            );
+
+            var docs = await col.Find(filter)
+                .Project(Builders<BsonDocument>.Projection.Include("Id").Include("Name").Include("Description"))
+                .ToListAsync(ct);
+
+            var list = new List<Category>(docs.Count);
+            foreach (var d in docs)
+                list.Add(MapCategory(d));
+            return list;
+        }
+
         private static Category MapCategory(BsonDocument doc)
         {
             var name = doc.GetValue("Name", BsonNull.Value).IsBsonNull ? string.Empty : doc["Name"].AsString;

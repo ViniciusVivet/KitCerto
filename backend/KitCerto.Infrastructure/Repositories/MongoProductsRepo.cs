@@ -154,5 +154,62 @@ namespace KitCerto.Infrastructure.Repositories
                 Count = x.Count
             }).ToList();
         }
+
+        public async Task<IReadOnlyList<CategoryValue>> ValueByCategoryAsync(CancellationToken ct)
+        {
+            var pipeline = _col.Aggregate()
+                .Group(p => p.CategoryId, g => new { CategoryId = g.Key, TotalValue = g.Sum(x => x.Price * x.Stock) });
+
+            var list = await pipeline.ToListAsync(ct);
+
+            return list.Select(x => new CategoryValue
+            {
+                CategoryId = x.CategoryId,
+                TotalValue = x.TotalValue
+            }).ToList();
+        }
+
+        public async Task<IReadOnlyList<Product>> TopProductsByValueAsync(int limit, CancellationToken ct)
+        {
+            return await _col
+                .Find(FilterDefinition<Product>.Empty)
+                .Sort(Builders<Product>.Sort.Descending(x => x.Price * x.Stock))
+                .Limit(limit)
+                .ToListAsync(ct);
+        }
+
+        public async Task<IReadOnlyList<PriceBucket>> PriceBucketsAsync(CancellationToken ct)
+        {
+            var buckets = new List<PriceBucket>();
+            
+            // Buckets: 0-50, 50-100, 100-200, 200-500, 500+
+            var ranges = new[]
+            {
+                new { Min = 0m, Max = 50m, Label = "R$ 0 - R$ 50" },
+                new { Min = 50m, Max = 100m, Label = "R$ 50 - R$ 100" },
+                new { Min = 100m, Max = 200m, Label = "R$ 100 - R$ 200" },
+                new { Min = 200m, Max = 500m, Label = "R$ 200 - R$ 500" },
+                new { Min = 500m, Max = decimal.MaxValue, Label = "R$ 500+" }
+            };
+
+            foreach (var range in ranges)
+            {
+                var filter = Builders<Product>.Filter.And(
+                    Builders<Product>.Filter.Gte(x => x.Price, range.Min),
+                    Builders<Product>.Filter.Lt(x => x.Price, range.Max)
+                );
+                
+                var count = await _col.CountDocumentsAsync(filter, cancellationToken: ct);
+                buckets.Add(new PriceBucket { Range = range.Label, Count = (int)count });
+            }
+
+            return buckets;
+        }
+
+        public async Task<IReadOnlyList<Product>> LowStockItemsAsync(int threshold, CancellationToken ct)
+        {
+            var filter = Builders<Product>.Filter.Lt(x => x.Stock, threshold);
+            return await _col.Find(filter).ToListAsync(ct);
+        }
     }
 }
