@@ -109,8 +109,8 @@ Integração completa com API backend implementada com **fallback inteligente** 
 
 #### Desenvolvimento Local
 ```bash
-# Para usar API real
-NEXT_PUBLIC_API_BASE_URL=http://localhost:5000
+# Para usar API real (sem Nginx, a API expõe /api)
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
 NEXT_PUBLIC_USE_MOCKS=false
 
 # Para usar mocks (desenvolvimento)

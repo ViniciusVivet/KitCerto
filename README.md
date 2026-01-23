@@ -86,6 +86,11 @@ npm run dev
 # Abra http://localhost:3000
 ```
 
+Se for usar API local sem Nginx, ajuste o ambiente do front:
+```
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5000/api
+```
+
 Mais detalhes: `frontend/ReadmeFRONTEND.md`.
 
 ---
@@ -153,6 +158,11 @@ KitCerto/
   - `DELETE /api/products/{id}` (**admin**)
 - Dashboard
   - `GET /api/dashboard/overview`
+- Sellers (solicitações)
+  - `POST /api/sellers/requests`
+  - `GET /api/sellers/requests` (user: próprias | admin: todas)
+  - `POST /api/sellers/requests/{id}/approve` (**admin**)
+  - `POST /api/sellers/requests/{id}/reject` (**admin**)
 - Auth util
   - `GET /api/auth/ping`
 
