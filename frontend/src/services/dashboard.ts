@@ -19,6 +19,49 @@ export type DashboardOverview = {
   lowStockItems: DashboardLowStockItem[];
 };
 
+type ApiDashboardOverview = {
+  totalProducts: number;
+  lowStockCount: number;
+  totalStockValue: number;
+  byCategory: { categoryId: string; categoryName?: string; count: number }[];
+  byCategoryValue: { categoryId: string; categoryName?: string; totalValue: number }[];
+  topProductsByValue: { productId: string; productName: string; stockValue: number; stock: number }[];
+  priceBuckets: { range: string; count: number }[];
+  lowStockItems: { productId: string; productName: string; stock: number; threshold?: number }[];
+};
+
+function mapApiDashboardOverview(api: ApiDashboardOverview): DashboardOverview {
+  return {
+    totalProducts: api.totalProducts ?? 0,
+    lowStock: api.lowStockCount ?? 0,
+    totalValue: api.totalStockValue ?? 0,
+    byCategory: (api.byCategory ?? []).map((item) => ({
+      categoryId: item.categoryId,
+      categoryName: item.categoryName,
+      count: item.count,
+    })),
+    byCategoryValue: (api.byCategoryValue ?? []).map((item) => ({
+      categoryId: item.categoryId,
+      categoryName: item.categoryName,
+      value: item.totalValue,
+    })),
+    topProductsByValue: (api.topProductsByValue ?? []).map((item) => ({
+      id: item.productId,
+      name: item.productName,
+      value: item.stockValue,
+    })),
+    priceBuckets: (api.priceBuckets ?? []).map((item) => ({
+      label: item.range,
+      count: item.count,
+    })),
+    lowStockItems: (api.lowStockItems ?? []).map((item) => ({
+      id: item.productId,
+      name: item.productName,
+      stock: item.stock,
+    })),
+  };
+}
+
 export type DataSource = "api" | "mock";
 export type DataMeta<T> = { data: T; source: DataSource; fallback: boolean };
 
@@ -36,10 +79,10 @@ export async function getDashboardOverviewWithMeta(): Promise<DataMeta<Dashboard
   if (preferMock) return { data: await mockDashboard(), source: "mock", fallback: false };
 
   try {
-    const data = await apiGet<DashboardOverview>(`/api/dashboard/overview`);
-    return { data, source: "api", fallback: false };
-  } catch {
-    // fallback preservado
+    const data = await apiGet<ApiDashboardOverview>(`/dashboard/overview`);
+    return { data: mapApiDashboardOverview(data), source: "api", fallback: false };
+  } catch (error) {
+    console.warn("Erro ao buscar dashboard da API, usando fallback para mocks:", error);
     return { data: await mockDashboard(), source: "mock", fallback: true };
   }
 }

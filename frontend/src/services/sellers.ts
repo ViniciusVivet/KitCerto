@@ -1,26 +1,67 @@
 import { apiPost, apiGet } from "@/lib/api";
 import { useMocks } from "@/lib/config";
-import { mockCreateSellerRequest, mockListSellerRequests, mockApproveSellerRequest, mockRejectSellerRequest, type SellerRequest } from "@/lib/mock";
+import {
+  mockCreateSellerRequest,
+  mockListSellerRequests,
+  mockApproveSellerRequest,
+  mockRejectSellerRequest,
+  type SellerRequest,
+} from "@/lib/mock";
+
+type DataSource = "api" | "mock";
+
+function getForcedDataSource(): DataSource | null {
+  if (typeof window === "undefined") return null;
+  const url = new URL(window.location.href);
+  const raw = (url.searchParams.get("data") || url.searchParams.get("ds") || "").toLowerCase();
+  if (raw === "api" || raw === "mock") return raw;
+  return null;
+}
+
+function shouldUseMocks(): boolean {
+  const forced = getForcedDataSource();
+  return useMocks || forced === "mock";
+}
 
 export async function createSellerRequest(payload: { userId: string; email: string; storeName: string; phone?: string; description?: string; }) {
-  if (useMocks) return mockCreateSellerRequest(payload);
-  return apiPost<SellerRequest>(`/api/sellers/requests`, payload);
+  if (shouldUseMocks()) return mockCreateSellerRequest(payload);
+  try {
+    return await apiPost<SellerRequest>(`/sellers/requests`, payload);
+  } catch (error) {
+    console.warn("Erro ao criar solicitação de vendedor na API, usando mock:", error);
+    return mockCreateSellerRequest(payload);
+  }
 }
 
 export async function listSellerRequests(status?: SellerRequest["status"]) {
-  if (useMocks) return mockListSellerRequests(status);
+  if (shouldUseMocks()) return mockListSellerRequests(status);
   const q = status ? `?status=${status}` : "";
-  return apiGet<SellerRequest[]>(`/api/sellers/requests${q}`);
+  try {
+    return await apiGet<SellerRequest[]>(`/sellers/requests${q}`);
+  } catch (error) {
+    console.warn("Erro ao listar solicitações de vendedor na API, usando mock:", error);
+    return mockListSellerRequests(status);
+  }
 }
 
 export async function approveSellerRequest(id: string) {
-  if (useMocks) return mockApproveSellerRequest(id);
-  return apiPost(`/api/sellers/requests/${id}/approve`, {});
+  if (shouldUseMocks()) return mockApproveSellerRequest(id);
+  try {
+    return await apiPost(`/sellers/requests/${id}/approve`, {});
+  } catch (error) {
+    console.warn("Erro ao aprovar solicitação na API, usando mock:", error);
+    return mockApproveSellerRequest(id);
+  }
 }
 
 export async function rejectSellerRequest(id: string) {
-  if (useMocks) return mockRejectSellerRequest(id);
-  return apiPost(`/api/sellers/requests/${id}/reject`, {});
+  if (shouldUseMocks()) return mockRejectSellerRequest(id);
+  try {
+    return await apiPost(`/sellers/requests/${id}/reject`, {});
+  } catch (error) {
+    console.warn("Erro ao rejeitar solicitação na API, usando mock:", error);
+    return mockRejectSellerRequest(id);
+  }
 }
 
 

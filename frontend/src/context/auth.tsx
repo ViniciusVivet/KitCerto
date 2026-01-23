@@ -89,11 +89,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       keycloak.updateToken(30).then((refreshed) => {
         if (refreshed) {
           setToken(keycloak.token || null);
+          console.log('Token renovado com sucesso');
         } else {
-          console.warn('Token não foi renovado');
+          console.warn('Token não foi renovado, redirecionando para login');
+          logout();
         }
-      }).catch(() => {
-        console.error('Erro ao renovar token');
+      }).catch((error) => {
+        console.error('Erro ao renovar token:', error);
         logout();
       });
     };

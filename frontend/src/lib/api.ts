@@ -1,65 +1,132 @@
 import { apiBaseUrl } from "@/lib/config";
 import { getToken } from "@/lib/keycloak";
 
+// Função para normalizar URLs e evitar duplicação de /api
+function normalizeApiPath(path: string): string {
+  // Garante barra inicial
+  if (!path.startsWith('/')) path = '/' + path;
+  // Colapsa duplicação /api/api/
+  path = path.replace(/^\/api\/api\//, '/api/');
+  return path;
+}
+
 export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    method: "GET",
-    headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
-    ...init,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+  const normalizedPath = normalizeApiPath(path);
+  
+  try {
+    const res = await fetch(`${apiBaseUrl}${normalizedPath}`, {
+      method: "GET",
+      headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
+      ...init,
+    });
+    
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 401) {
+        // Token expirado ou inválido
+        console.warn("Token expirado ou inválido, redirecionando para login");
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Erro na requisição GET ${normalizedPath}:`, error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function apiPost<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
-    body: JSON.stringify(body ?? {}),
-    ...init,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+  const normalizedPath = normalizeApiPath(path);
+  
+  try {
+    const res = await fetch(`${apiBaseUrl}${normalizedPath}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
+      body: JSON.stringify(body ?? {}),
+      ...init,
+    });
+    
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 401) {
+        console.warn("Token expirado ou inválido, redirecionando para login");
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Erro na requisição POST ${normalizedPath}:`, error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function apiPut<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
-    body: JSON.stringify(body ?? {}),
-    ...init,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
+  const normalizedPath = normalizeApiPath(path);
+  
+  try {
+    const res = await fetch(`${apiBaseUrl}${normalizedPath}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
+      body: JSON.stringify(body ?? {}),
+      ...init,
+    });
+    
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 401) {
+        console.warn("Token expirado ou inválido, redirecionando para login");
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    return res.json();
+  } catch (error) {
+    console.error(`Erro na requisição PUT ${normalizedPath}:`, error);
+    throw error;
   }
-  return res.json();
 }
 
 export async function apiDelete<T = void>(path: string, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
-  const res = await fetch(`${apiBaseUrl}${path}`, {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
-    ...init,
-  });
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
-  }
+  const normalizedPath = normalizeApiPath(path);
+  
   try {
-    return (await res.json()) as T;
-  } catch {
-    return undefined as unknown as T;
+    const res = await fetch(`${apiBaseUrl}${normalizedPath}`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
+      ...init,
+    });
+    
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 401) {
+        console.warn("Token expirado ou inválido, redirecionando para login");
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+      }
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+    
+    try {
+      return (await res.json()) as T;
+    } catch {
+      return undefined as unknown as T;
+    }
+  } catch (error) {
+    console.error(`Erro na requisição DELETE ${normalizedPath}:`, error);
+    throw error;
   }
 }
 

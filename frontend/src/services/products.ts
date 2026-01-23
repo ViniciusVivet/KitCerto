@@ -32,9 +32,10 @@ export async function listProductsWithMeta(params: { page?: number; pageSize?: n
     if (params.pageSize) q.set("pageSize", String(params.pageSize));
     if (params.name) q.set("name", params.name);
     if (params.categoryId) q.set("categoryId", params.categoryId);
-    const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/api/products/search?${q.toString()}`);
+    const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/products?${q.toString()}`);
     return { data: { items: data.items, total: data.total, page: data.page, pageSize: data.pageSize }, source: "api", fallback: false };
-  } catch {
+  } catch (error) {
+    console.warn("Erro ao buscar produtos da API, usando fallback para mocks:", error);
     return { data: await mockSearchProducts(params.name, params.categoryId), source: "mock", fallback: true };
   }
 }
@@ -49,15 +50,11 @@ export async function listCategoriesWithMeta(params?: { page?: number; pageSize?
   const preferMock = useMocks || forced === "mock";
   if (preferMock) return { data: await mockFetchCategories(), source: "mock", fallback: false };
 
-  try {
-    const q = new URLSearchParams();
-    if (params?.page) q.set("page", String(params.page));
-    if (params?.pageSize) q.set("pageSize", String(params.pageSize));
-    const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/api/categories?${q.toString()}`);
-    return { data: data.items ?? (data as any), source: "api", fallback: false };
-  } catch {
-    return { data: await mockFetchCategories(), source: "mock", fallback: true };
-  }
+  const q = new URLSearchParams();
+  if (params?.page) q.set("page", String(params.page));
+  if (params?.pageSize) q.set("pageSize", String(params.pageSize));
+  const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/categories?${q.toString()}`);
+  return { data: data.items ?? (data as any), source: "api", fallback: false };
 }
 
 export async function listCategories(params?: { page?: number; pageSize?: number }) {
@@ -71,13 +68,9 @@ export async function getLatestProductsWithMeta(limit: number = 10): Promise<Dat
   const preferMock = useMocks || forced === "mock";
   if (preferMock) return { data: await mockLatestProducts(limit), source: "mock", fallback: false };
 
-  try {
-    // Não há endpoint específico; usar a primeira página como proxy de "novidades"
-    const { data } = await listProductsWithMeta({ page: 1, pageSize: limit });
-    return { data: data.items ?? [], source: "api", fallback: false };
-  } catch {
-    return { data: await mockLatestProducts(limit), source: "mock", fallback: true };
-  }
+  // Não há endpoint específico; usar a primeira página como proxy de "novidades"
+  const { data } = await listProductsWithMeta({ page: 1, pageSize: limit });
+  return { data: data.items ?? [], source: "api", fallback: false };
 }
 
 // Mais vendidos (API → fallback mocks)
@@ -86,13 +79,9 @@ export async function getBestSellingProductsWithMeta(limit: number = 10): Promis
   const preferMock = useMocks || forced === "mock";
   if (preferMock) return { data: await mockBestSellingProducts(limit), source: "mock", fallback: false };
 
-  try {
-    // Não há endpoint específico; usar a primeira página como proxy de "destaques"
-    const { data } = await listProductsWithMeta({ page: 1, pageSize: limit });
-    return { data: data.items ?? [], source: "api", fallback: false };
-  } catch {
-    return { data: await mockBestSellingProducts(limit), source: "mock", fallback: true };
-  }
+  // Não há endpoint específico; usar a primeira página como proxy de "destaques"
+  const { data } = await listProductsWithMeta({ page: 1, pageSize: limit });
+  return { data: data.items ?? [], source: "api", fallback: false };
 }
 
 // CRUD
@@ -102,7 +91,7 @@ export async function createProduct(payload: any) {
   if (preferMock) {
     return Promise.resolve(mockCreateProduct(payload));
   }
-  return apiPost<any>(`/api/products`, payload);
+  return apiPost<any>(`/products`, payload);
 }
 
 export async function updateProduct(id: string, payload: any) {
@@ -111,7 +100,7 @@ export async function updateProduct(id: string, payload: any) {
   if (preferMock) {
     return Promise.resolve(mockUpdateProduct(id, payload));
   }
-  return apiPut<any>(`/api/products/${id}`, payload);
+  return apiPut<any>(`/products/${id}`, payload);
 }
 
 export async function deleteProduct(id: string) {
@@ -120,11 +109,11 @@ export async function deleteProduct(id: string) {
   if (preferMock) {
     return Promise.resolve(mockDeleteProduct(id));
   }
-  return apiDelete(`/api/products/${id}`);
+  return apiDelete(`/products/${id}`);
 }
 
 export async function getProductById(id: string) {
-  return apiGet<any>(`/api/products/${id}`);
+  return apiGet<any>(`/products/${id}`);
 }
 
 
