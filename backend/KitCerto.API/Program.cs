@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -15,17 +15,23 @@ using System.Threading.RateLimiting;
 using KitCerto.Application.Products.Create;
 using KitCerto.API.Swagger;
 using KitCerto.Infrastructure.DependencyInjection;
+using KitCerto.API.Middlewares;
 using KitCerto.Application.Dashboard.Overview;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Controllers + Swagger
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddApplicationPart(typeof(Program).Assembly);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuthAndProblemDetails(builder.Configuration);
 
 // CORS (origens lidas do appsettings: Cors:Origins)
 var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
+if (corsOrigins.Length == 0 && !builder.Environment.IsDevelopment())
+{
+    throw new InvalidOperationException("Cors:Origins deve ser configurado fora de Development.");
+}
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
@@ -39,8 +45,10 @@ builder.Services.AddCors(options =>
         }
         else
         {
-            // fallback DEV; não usar em PROD
-            policy.AllowAnyHeader().AllowAnyMethod();
+            // fallback DEV
+            policy.AllowAnyOrigin()
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
         }
     });
 });
@@ -48,12 +56,28 @@ builder.Services.AddCors(options =>
 // Rate limiting simples
 builder.Services.AddRateLimiter(options =>
 {
-    options.AddFixedWindowLimiter("fixed", opt =>
+    options.AddFixedWindowLimiter("api", opt =>
     {
         opt.PermitLimit = 100;                 // até 100 req/min
         opt.Window = TimeSpan.FromMinutes(1);
         opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         opt.QueueLimit = 20;
+    });
+
+    options.AddFixedWindowLimiter("auth", opt =>
+    {
+        opt.PermitLimit = 30;                  // endpoints sensíveis
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 10;
+    });
+
+    options.AddFixedWindowLimiter("health", opt =>
+    {
+        opt.PermitLimit = 300;                 // checks mais frequentes
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        opt.QueueLimit = 0;
     });
 });
 
@@ -76,7 +100,8 @@ builder.Services
     .AddJwtBearer(options =>
     {
         options.Authority = authority;                // ex.: o http://keycloak:8080/realms/kitcerto
-        options.RequireHttpsMetadata = false;         // DEV/Docker
+        var requireHttpsMetadata = builder.Configuration.GetValue<bool?>("Auth:RequireHttpsMetadata");
+        options.RequireHttpsMetadata = requireHttpsMetadata ?? !builder.Environment.IsDevelopment();
         options.MapInboundClaims = false;             // manter nomes "crus" de claims
 
         options.TokenValidationParameters = new TokenValidationParameters
@@ -89,8 +114,8 @@ builder.Services
                 "http://keycloak:8080/realms/kitcerto"
             },
 
-            // ✅ audience relaxado em DEV (pode endurecer depois)
-            ValidateAudience = false,
+            // ✅ audience validado para segurança
+            ValidateAudience = true,
             ValidAudiences = new[] { audience, "account" },
 
             NameClaimType = "preferred_username",
@@ -161,17 +186,15 @@ builder.Services.AddAuthorization();
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(KitCerto.Application.Dashboard.Overview.DashboardOverviewQuery).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(DashboardOverviewQuery).Assembly);
 });
-
-// Registro explícito do handler do Dashboard (garantia)
-builder.Services.AddTransient<IRequestHandler<DashboardOverviewQuery, DashboardOverviewDto>, DashboardOverviewHandler>();
 
 // Infra (Mongo + Repositórios)
 builder.Services.AddInfrastructure(builder.Configuration);
 
 // HealthChecks simples (sem package específico)
 builder.Services.AddHealthChecks();
+builder.Services.AddMemoryCache();
 
 // Serilog
 builder.Host.UseSerilog((ctx, lc) =>
@@ -185,6 +208,8 @@ var app = builder.Build();
 
 app.UseSerilogRequestLogging();
 
+app.UseMiddleware<ProblemDetailsMiddleware>();
+
 app.UseSwaggerDocumentation(builder.Configuration);
 
 app.UseCors("Frontend");
@@ -194,14 +219,15 @@ app.UseAuthorization();
 
 app.UseRateLimiter();
 
-app.MapHealthChecks("/health");
-app.MapControllers().RequireRateLimiting("fixed");
+app.MapHealthChecks("/health").RequireRateLimiting("health");
+app.MapControllers().RequireRateLimiting("api");
 
 // Endpoint de fumaça rápido
 app.MapGet("/whoami", (ClaimsPrincipal user) => new
 {
     name = user.Identity?.Name,
     roles = user.Claims.Where(c => c.Type == ClaimTypes.Role).Select(c => c.Value).ToArray()
-}).RequireAuthorization();
+}).RequireAuthorization()
+  .RequireRateLimiting("auth");
 
 app.Run();
