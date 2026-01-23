@@ -10,5 +10,6 @@ namespace KitCerto.Domain.Repositories
         Task<string> CreateAsync(Category c, CancellationToken ct);
         Task<Category?> GetByIdAsync(string id, CancellationToken ct);
         Task<IReadOnlyList<Category>> ListAsync(int page, int pageSize, CancellationToken ct);
+        Task<IReadOnlyList<Category>> GetByIdsAsync(IReadOnlyCollection<string> ids, CancellationToken ct);
     }
 }

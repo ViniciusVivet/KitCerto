@@ -22,11 +22,29 @@ namespace KitCerto.Domain.Repositories
         Task<int> LowStockCountAsync(int threshold, CancellationToken ct);
         Task<decimal> TotalStockValueAsync(CancellationToken ct);
         Task<IReadOnlyList<CategoryCount>> CountByCategoryAsync(CancellationToken ct);
+        
+        // Métodos adicionais para dashboard
+        Task<IReadOnlyList<CategoryValue>> ValueByCategoryAsync(CancellationToken ct);
+        Task<IReadOnlyList<Product>> TopProductsByValueAsync(int limit, CancellationToken ct);
+        Task<IReadOnlyList<PriceBucket>> PriceBucketsAsync(CancellationToken ct);
+        Task<IReadOnlyList<Product>> LowStockItemsAsync(int threshold, CancellationToken ct);
     }
     
     public sealed class CategoryCount
     {
         public string CategoryId { get; set; } = "";
+        public int Count { get; set; }
+    }
+
+    public sealed class CategoryValue
+    {
+        public string CategoryId { get; set; } = "";
+        public decimal TotalValue { get; set; }
+    }
+
+    public sealed class PriceBucket
+    {
+        public string Range { get; set; } = "";
         public int Count { get; set; }
     }
 
