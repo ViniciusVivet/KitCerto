@@ -31,7 +31,7 @@ public sealed class EfProductsRepo : IProductsRepo
             .Take(pageSize)
             .ToListAsync(ct);
 
-    public async Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, CancellationToken ct)
+    public async Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, IReadOnlyList<ProductMedia> media, CancellationToken ct)
     {
         var p = await _db.Products.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (p is null) return;
@@ -42,6 +42,7 @@ public sealed class EfProductsRepo : IProductsRepo
         p.GetType().GetProperty(nameof(Product.Price))!.SetValue(p, price);
         p.GetType().GetProperty(nameof(Product.Stock))!.SetValue(p, stock);
         p.GetType().GetProperty(nameof(Product.CategoryId))!.SetValue(p, categoryId);
+        p.GetType().GetProperty(nameof(Product.Media))!.SetValue(p, media.ToList());
         await _db.SaveChangesAsync(ct);
     }
 

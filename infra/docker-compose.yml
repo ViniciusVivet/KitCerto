@@ -82,8 +82,16 @@ services:
       Auth__Authority: "http://keycloak:8080/realms/kitcerto"
       Auth__Audience: "kitcerto-api"
       Cors__Origins: "http://localhost:3000;http://localhost"
+      MercadoPago__AccessToken: ${MP_ACCESS_TOKEN:-}
+      MercadoPago__Sandbox: ${MP_SANDBOX:-true}
+      MercadoPago__SuccessUrl: ${MP_SUCCESS_URL:-http://localhost/checkout/success}
+      MercadoPago__FailureUrl: ${MP_FAILURE_URL:-http://localhost/checkout/failure}
+      MercadoPago__PendingUrl: ${MP_PENDING_URL:-http://localhost/checkout/pending}
+      MercadoPago__NotificationUrl: ${MP_NOTIFICATION_URL:-}
     ports:
       - "5000:5000"
+    volumes:
+      - ./data/uploads:/app/wwwroot/uploads
     restart: unless-stopped
     # Healthcheck removido em favor de readiness no orquestrador (ou checks nativos)
 

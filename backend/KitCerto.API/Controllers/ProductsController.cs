@@ -73,7 +73,8 @@ namespace KitCerto.API.Controllers
                 description = prod.Description,
                 price = prod.Price,
                 stock = prod.Stock,
-                categoryId = prod.CategoryId
+                categoryId = prod.CategoryId,
+                media = prod.Media
             });
         }
 

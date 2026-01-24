@@ -10,5 +10,10 @@ public sealed class CreateProductValidator : AbstractValidator<CreateProductCmd>
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Stock).GreaterThanOrEqualTo(0);
+        RuleForEach(x => x.Media).ChildRules(media =>
+        {
+            media.RuleFor(m => m.Url).NotEmpty();
+            media.RuleFor(m => m.Type).NotEmpty().Must(t => t == "image" || t == "video");
+        });
     }
 }

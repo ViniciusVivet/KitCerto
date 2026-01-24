@@ -1,3 +1,6 @@
+using System;
+using System.Linq;
+using System.Reflection;
 using KitCerto.Domain.Products;
 using KitCerto.Domain.Repositories;
 using MediatR;
@@ -11,14 +14,22 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCmd, str
 
     public async Task<string> Handle(CreateProductCmd req, CancellationToken ct)
     {
+        var media = (req.Media ?? Array.Empty<CreateProductMedia>())
+            .Select(m => new ProductMedia(m.Url, m.Type))
+            .ToList();
         var product = new Product(
             req.Name,
             req.Description,
             req.Price,
             req.CategoryId,
             req.Quantity,
-            req.Stock
+            req.Stock,
+            media
         );
-        return await _repo.CreateAsync(product, ct);
+        var id = $"p-{Guid.NewGuid():N}";
+        typeof(Product).GetProperty(nameof(Product.Id), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
+            .SetValue(product, id);
+        await _repo.CreateAsync(product, ct);
+        return id;
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace KitCerto.Domain.Products
@@ -20,6 +21,8 @@ namespace KitCerto.Domain.Products
 
         [BsonElement("CreatedAtUtc")] public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
 
+        [BsonElement("Media")] public List<ProductMedia> Media { get; private set; } = new();
+
         // 👇 Agora o construtor aceita 6 argumentos (incluindo stock)
         public Product(
             string name,
@@ -28,6 +31,18 @@ namespace KitCerto.Domain.Products
             string categoryId,
             int quantity,
             int stock)
+            : this(name, description, price, categoryId, quantity, stock, new List<ProductMedia>())
+        {
+        }
+
+        public Product(
+            string name,
+            string description,
+            decimal price,
+            string categoryId,
+            int quantity,
+            int stock,
+            List<ProductMedia> media)
         {
             Name        = name;
             Description = description;
@@ -35,9 +50,24 @@ namespace KitCerto.Domain.Products
             CategoryId  = categoryId;
             Quantity    = quantity;
             Stock       = stock;
+            Media       = media ?? new List<ProductMedia>();
         }
 
         // Necessário para deserialização do MongoDB.Driver / EF Mongo
         public Product() { }
+    }
+
+    public sealed class ProductMedia
+    {
+        [BsonElement("Url")] public string Url { get; private set; } = string.Empty;
+        [BsonElement("Type")] public string Type { get; private set; } = "image";
+
+        public ProductMedia(string url, string type)
+        {
+            Url = url;
+            Type = type;
+        }
+
+        public ProductMedia() { }
     }
 }

@@ -1,9 +1,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.IdentityModel.JsonWebTokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text.Json;
+using System.Collections.Generic;
 using System.Linq;                 // ✅ LINQ usado no /whoami e no mapeamento
+using System.IO;
 using System.Threading.Tasks;      // ✅ Task usado no OnTokenValidated
 
 using MediatR;
@@ -17,6 +20,9 @@ using KitCerto.API.Swagger;
 using KitCerto.Infrastructure.DependencyInjection;
 using KitCerto.API.Middlewares;
 using KitCerto.Application.Dashboard.Overview;
+using KitCerto.Application.Products.Queries.ListProducts;
+using KitCerto.Application.Categories.Queries.ListCategories;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,6 +90,8 @@ builder.Services.AddRateLimiter(options =>
 // ===================
 // JWT / Keycloak
 // ===================
+var isLocalEnv = builder.Environment.IsDevelopment()
+    || builder.Environment.EnvironmentName.Equals("Docker", StringComparison.OrdinalIgnoreCase);
 var authorityRaw = builder.Configuration["Auth:Authority"]
     ?? throw new InvalidOperationException("Auth:Authority not set");
 var audience = builder.Configuration["Auth:Audience"]
@@ -114,8 +122,8 @@ builder.Services
                 "http://keycloak:8080/realms/kitcerto"
             },
 
-            // ✅ audience validado para segurança
-            ValidateAudience = true,
+            // Em ambiente local, aceita tokens sem aud para facilitar o fluxo.
+            ValidateAudience = !isLocalEnv,
             ValidAudiences = new[] { audience, "account" },
 
             NameClaimType = "preferred_username",
@@ -128,17 +136,38 @@ builder.Services
         {
             OnTokenValidated = ctx =>
             {
-                if (ctx.SecurityToken is JwtSecurityToken jwt)
                 {
                     var identity = ctx.Principal?.Identities.FirstOrDefault();
-                    if (identity is null) return Task.CompletedTask;
+                    var roles = new List<string>();
 
-                    // -------- roles em realm_access.roles
-                    if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                    string? realmAccessRaw = null;
+                    string? resourceAccessRaw = null;
+
+                    if (ctx.SecurityToken is JwtSecurityToken jwt)
+                    {
+                        if (jwt.Payload.TryGetValue("realm_access", out var realmAccessObj))
+                            realmAccessRaw = realmAccessObj?.ToString();
+                        if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                            resourceAccessRaw = resourceAccessObj?.ToString();
+                    }
+                    else if (ctx.SecurityToken is JsonWebToken jwt2)
+                    {
+                        if (jwt2.TryGetPayloadValue("realm_access", out string? ra))
+                            realmAccessRaw = ra;
+                        if (jwt2.TryGetPayloadValue("resource_access", out string? rca))
+                            resourceAccessRaw = rca;
+                    }
+
+                    if (string.IsNullOrWhiteSpace(realmAccessRaw))
+                        realmAccessRaw = ctx.Principal?.FindFirst("realm_access")?.Value;
+                    if (string.IsNullOrWhiteSpace(resourceAccessRaw))
+                        resourceAccessRaw = ctx.Principal?.FindFirst("resource_access")?.Value;
+
+                    if (!string.IsNullOrWhiteSpace(realmAccessRaw))
                     {
                         try
                         {
-                            using var doc = JsonDocument.Parse(realmAccessObj.ToString()!);
+                            using var doc = JsonDocument.Parse(realmAccessRaw);
                             if (doc.RootElement.TryGetProperty("roles", out var rolesEl) &&
                                 rolesEl.ValueKind == JsonValueKind.Array)
                             {
@@ -146,19 +175,18 @@ builder.Services
                                 {
                                     var role = r.GetString();
                                     if (!string.IsNullOrWhiteSpace(role))
-                                        identity.AddClaim(new Claim(ClaimTypes.Role, role!));
+                                        roles.Add(role!);
                                 }
                             }
                         }
                         catch { /* ignora parsing em DEV */ }
                     }
 
-                    // -------- roles em resource_access.{clientId}.roles
-                    if (jwt.Payload.TryGetValue("resource_access", out var resourceAccessObj))
+                    if (!string.IsNullOrWhiteSpace(resourceAccessRaw))
                     {
                         try
                         {
-                            using var doc = JsonDocument.Parse(resourceAccessObj.ToString()!);
+                            using var doc = JsonDocument.Parse(resourceAccessRaw);
                             if (doc.RootElement.TryGetProperty(audience, out var clientEl) &&
                                 clientEl.TryGetProperty("roles", out var clientRoles) &&
                                 clientRoles.ValueKind == JsonValueKind.Array)
@@ -167,11 +195,28 @@ builder.Services
                                 {
                                     var role = r.GetString();
                                     if (!string.IsNullOrWhiteSpace(role))
-                                        identity.AddClaim(new Claim(ClaimTypes.Role, role!));
+                                        roles.Add(role!);
                                 }
                             }
                         }
                         catch { /* ignora parsing em DEV */ }
+                    }
+
+                    if (roles.Count > 0)
+                    {
+                        if (identity is null)
+                        {
+                            var roleClaims = roles.Distinct().Select(r => new Claim(ClaimTypes.Role, r));
+                            ctx.Principal?.AddIdentity(new ClaimsIdentity(roleClaims, ctx.Principal?.Identity?.AuthenticationType, null, ClaimTypes.Role));
+                        }
+                        else
+                        {
+                            foreach (var r in roles.Distinct())
+                            {
+                                if (!identity.HasClaim(ClaimTypes.Role, r))
+                                    identity.AddClaim(new Claim(ClaimTypes.Role, r));
+                            }
+                        }
                     }
                 }
 
@@ -185,6 +230,9 @@ builder.Services.AddAuthorization();
 // MediatR (Application + Dashboard handlers)
 builder.Services.AddMediatR(cfg =>
 {
+    cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(ListProductsHandler).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(ListCategoriesHandler).Assembly);
     cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly);
     cfg.RegisterServicesFromAssembly(typeof(DashboardOverviewQuery).Assembly);
 });
@@ -211,6 +259,14 @@ app.UseSerilogRequestLogging();
 app.UseMiddleware<ProblemDetailsMiddleware>();
 
 app.UseSwaggerDocumentation(builder.Configuration);
+
+var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot", "uploads");
+Directory.CreateDirectory(uploadsRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(uploadsRoot),
+    RequestPath = "/api/media"
+});
 
 app.UseCors("Frontend");
 

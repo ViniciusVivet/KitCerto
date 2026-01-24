@@ -6,12 +6,17 @@ import { Input } from "@/components/ui/input";
 import React from "react";
 import { useToast } from "@/context/toast";
 import { useCart } from "@/context/cart";
+import { createOrderCheckout } from "@/services/orders";
 
 export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
-  const { state, subtotal } = useCart();
+  const { state, subtotal, dispatch } = useCart();
   const { notify } = useToast();
   const [step, setStep] = React.useState<1 | 2 | 3 | 4>(1);
   const [coupon, setCoupon] = React.useState("");
+  const [addressLine, setAddressLine] = React.useState("");
+  const [city, setCity] = React.useState("");
+  const [uf, setUf] = React.useState("");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const discount = coupon === "KIT10" ? subtotal * 0.1 : 0;
   const shipping = subtotal > 300 ? 0 : 19.9;
   const total = Math.max(0, subtotal - discount + shipping);
@@ -28,13 +33,13 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
           {step === 1 && (
             <section className="space-y-3">
               <h4 className="text-sm font-medium">Endereço</h4>
-              <Input placeholder="Rua" />
+              <Input placeholder="Rua" value={addressLine} onChange={(e) => setAddressLine(e.target.value)} />
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Cidade" />
-                <Input placeholder="UF" />
+                <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input placeholder="UF" value={uf} onChange={(e) => setUf(e.target.value)} />
               </div>
               <div className="flex justify-end">
-                <Button onClick={() => setStep(2)}>Continuar</Button>
+                <Button onClick={() => setStep(2)} disabled={!addressLine || !city || !uf}>Continuar</Button>
               </div>
             </section>
           )}
@@ -86,7 +91,27 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
               <div className="flex justify-between">
                 <Button variant="secondary" onClick={() => setStep(3)}>Voltar</Button>
                 <DialogClose asChild>
-                  <Button onClick={() => notify({ title: "Pedido confirmado", description: "Compra finalizada (mock)", variant: "success" })}>Confirmar</Button>
+                  <Button
+                    disabled={isSubmitting}
+                    onClick={async () => {
+                      try {
+                        setIsSubmitting(true);
+                        const checkout = await createOrderCheckout({
+                          items: state.items.map((i) => ({ productId: i.id, quantity: i.qty })),
+                          shipping: { addressLine, city, state: uf },
+                        });
+                        dispatch({ type: "clear" });
+                        notify({ title: "Checkout criado", description: "Redirecionando para pagamento…", variant: "success" });
+                        window.location.href = checkout.checkoutUrl;
+                      } catch (err: any) {
+                        notify({ title: "Falha no checkout", description: err?.message ?? "Erro inesperado", variant: "error" });
+                      } finally {
+                        setIsSubmitting(false);
+                      }
+                    }}
+                  >
+                    Confirmar
+                  </Button>
                 </DialogClose>
               </div>
             </section>

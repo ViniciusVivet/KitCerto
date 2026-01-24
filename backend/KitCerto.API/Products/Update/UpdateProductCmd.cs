@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using MediatR;
 
 namespace KitCerto.Application.Products.Update
@@ -8,6 +9,9 @@ namespace KitCerto.Application.Products.Update
         string Description,
         decimal Price,
         int Stock,
-        string CategoryId
+        string CategoryId,
+        IReadOnlyList<UpdateProductMedia>? Media
     ) : IRequest;
+
+    public sealed record UpdateProductMedia(string Url, string Type);
 }

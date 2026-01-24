@@ -1,5 +1,8 @@
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using KitCerto.Domain.Products;
 using KitCerto.Domain.Repositories;
 using MediatR;
 
@@ -12,7 +15,10 @@ namespace KitCerto.Application.Products.Update
 
         public async Task Handle(UpdateProductCmd req, CancellationToken ct)
         {
-            await _repo.UpdateAsync(req.Id, req.Name, req.Description, req.Price, req.Stock, req.CategoryId, ct);
+            var media = (req.Media ?? Array.Empty<UpdateProductMedia>())
+                .Select(m => new ProductMedia(m.Url, m.Type))
+                .ToList();
+            await _repo.UpdateAsync(req.Id, req.Name, req.Description, req.Price, req.Stock, req.CategoryId, media, ct);
         }
     }
 }

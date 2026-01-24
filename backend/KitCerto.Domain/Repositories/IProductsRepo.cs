@@ -12,7 +12,7 @@ namespace KitCerto.Domain.Repositories
         Task<IReadOnlyList<Product>> ListAsync(int page, int pageSize, CancellationToken ct);
 
         // NOVOS
-        Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, CancellationToken ct);
+        Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, IReadOnlyList<ProductMedia> media, CancellationToken ct);
         Task DeleteAsync(string id, CancellationToken ct);
         Task UpdateStockAsync(string id, int stock, CancellationToken ct);
         Task<IReadOnlyList<Product>> ListLowStockAsync(int threshold, CancellationToken ct);

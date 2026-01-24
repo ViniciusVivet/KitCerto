@@ -1,3 +1,5 @@
+using System;
+using System.Reflection;
 using KitCerto.Domain.Categories;
 using KitCerto.Domain.Repositories;
 using MediatR;
@@ -12,6 +14,10 @@ public sealed class CreateCategoryHandler : IRequestHandler<CreateCategoryCmd, s
     public async Task<string> Handle(CreateCategoryCmd req, CancellationToken ct)
     {
         var category = new Category(req.Name, req.Description);
-        return await _repo.CreateAsync(category, ct);
+        var id = $"cat-{Guid.NewGuid():N}";
+        typeof(Category).GetProperty(nameof(Category.Id), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
+            .SetValue(category, id);
+        await _repo.CreateAsync(category, ct);
+        return id;
     }
 }

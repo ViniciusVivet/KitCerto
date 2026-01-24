@@ -15,10 +15,11 @@ import { useToast } from "@/context/toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/context/auth";
 
-function ProductCard({ id, name, price }: { id: string; name: string; price: number }) {
+function ProductCard({ id, name, price, media }: { id: string; name: string; price: number; media?: { url: string; type: string }[] }) {
   const { dispatch } = useCart();
   const { isFav, toggle } = useFavorites();
   const { notify } = useToast();
+  const cover = media?.[0];
   return (
     <Card className="group overflow-hidden transition-shadow hover:shadow-[0_0_24px_rgba(59,130,246,0.25)]">
       <CardHeader className="p-0">
@@ -26,7 +27,25 @@ function ProductCard({ id, name, price }: { id: string; name: string; price: num
           id={id}
           name={name}
           price={price}
-          trigger={<div className="aspect-square w-full cursor-pointer bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />}
+          media={media}
+          trigger={
+            cover ? (
+              cover.type === "video" ? (
+                <video
+                  className="aspect-square w-full object-cover"
+                  src={cover.url}
+                  muted
+                  loop
+                  playsInline
+                  autoPlay
+                />
+              ) : (
+                <img className="aspect-square w-full object-cover" src={cover.url} alt={name} />
+              )
+            ) : (
+              <div className="aspect-square w-full cursor-pointer bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />
+            )
+          }
         />
       </CardHeader>
       <CardContent className="space-y-1 p-4">
@@ -167,7 +186,7 @@ export default function Home() {
             </Card>
           ))}
           {!isLoading && products?.items?.map((p) => (
-            <ProductCard key={p.id} id={p.id} name={p.name} price={p.price} />
+            <ProductCard key={p.id} id={p.id} name={p.name} price={p.price} media={p.media} />
           ))}
         </div>
       </section>
@@ -178,7 +197,7 @@ export default function Home() {
         <HorizontalCarousel>
           {(bestSelling ?? []).map((p) => (
             <div key={p.id} className="min-w-[180px] max-w-[180px]">
-              <ProductCard id={p.id} name={p.name} price={p.price} />
+              <ProductCard id={p.id} name={p.name} price={p.price} media={p.media} />
             </div>
           ))}
         </HorizontalCarousel>
@@ -190,7 +209,7 @@ export default function Home() {
         <HorizontalCarousel>
           {(latest ?? []).map((p) => (
             <div key={p.id} className="min-w-[180px] max-w-[180px]">
-              <ProductCard id={p.id} name={p.name} price={p.price} />
+              <ProductCard id={p.id} name={p.name} price={p.price} media={p.media} />
             </div>
           ))}
         </HorizontalCarousel>

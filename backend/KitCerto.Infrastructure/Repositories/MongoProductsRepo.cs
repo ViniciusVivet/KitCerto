@@ -45,7 +45,7 @@ namespace KitCerto.Infrastructure.Repositories
         }
 
         // NOVOS
-        public async Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, CancellationToken ct)
+        public async Task UpdateAsync(string id, string name, string description, decimal price, int stock, string categoryId, IReadOnlyList<ProductMedia> media, CancellationToken ct)
         {
             var filter = Builders<Product>.Filter.Eq(x => x.Id, id);
             var update = Builders<Product>.Update
@@ -53,7 +53,8 @@ namespace KitCerto.Infrastructure.Repositories
                 .Set(x => x.Description, description)
                 .Set(x => x.Price, price)
                 .Set(x => x.Stock, stock)
-                .Set(x => x.CategoryId, categoryId);
+                .Set(x => x.CategoryId, categoryId)
+                .Set(x => x.Media, media);
 
             await _col.UpdateOneAsync(filter, update, cancellationToken: ct);
         }
