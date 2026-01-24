@@ -1,3 +1,4 @@
+using System.Linq;
 using FluentValidation;
 
 namespace KitCerto.Application.Products.Create;
@@ -10,6 +11,15 @@ public sealed class CreateProductValidator : AbstractValidator<CreateProductCmd>
         RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0);
         RuleFor(x => x.Stock).GreaterThanOrEqualTo(0);
+        RuleFor(x => x.Media)
+            .Must(media =>
+            {
+                if (media is null) return true;
+                var imageCount = media.Count(m => m.Type == "image");
+                var videoCount = media.Count(m => m.Type == "video");
+                return imageCount <= 5 && videoCount <= 2 && (imageCount + videoCount) <= 7;
+            })
+            .WithMessage("Limite por produto: até 5 fotos e 2 vídeos.");
         RuleForEach(x => x.Media).ChildRules(media =>
         {
             media.RuleFor(m => m.Url).NotEmpty();

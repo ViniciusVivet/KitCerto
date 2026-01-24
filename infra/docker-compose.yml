@@ -88,6 +88,14 @@ services:
       MercadoPago__FailureUrl: ${MP_FAILURE_URL:-http://localhost/checkout/failure}
       MercadoPago__PendingUrl: ${MP_PENDING_URL:-http://localhost/checkout/pending}
       MercadoPago__NotificationUrl: ${MP_NOTIFICATION_URL:-}
+      Storage__Provider: ${Storage__Provider:-local}
+      Storage__S3__Bucket: ${Storage__S3__Bucket:-}
+      Storage__S3__Region: ${Storage__S3__Region:-}
+      Storage__S3__BaseUrl: ${Storage__S3__BaseUrl:-}
+      Storage__S3__PublicRead: ${Storage__S3__PublicRead:-true}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      AWS_REGION: ${AWS_REGION:-}
     ports:
       - "5000:5000"
     volumes:
