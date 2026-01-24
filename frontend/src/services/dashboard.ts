@@ -1,6 +1,5 @@
 import { apiGet } from "@/lib/api";
 import { useMocks } from "@/lib/config";
-import { mockDashboard } from "@/lib/mock";
 
 export type DashboardByCategory = { categoryId: string; categoryName?: string; count: number };
 export type DashboardByCategoryValue = { categoryId: string; categoryName?: string; value: number };
@@ -76,15 +75,13 @@ function getForcedDataSource(): DataSource | null {
 export async function getDashboardOverviewWithMeta(): Promise<DataMeta<DashboardOverview>> {
   const forced = getForcedDataSource();
   const preferMock = useMocks || forced === "mock";
-  if (preferMock) return { data: await mockDashboard(), source: "mock", fallback: false };
-
-  try {
-    const data = await apiGet<ApiDashboardOverview>(`/dashboard/overview`);
-    return { data: mapApiDashboardOverview(data), source: "api", fallback: false };
-  } catch (error) {
-    console.warn("Erro ao buscar dashboard da API, usando fallback para mocks:", error);
-    return { data: await mockDashboard(), source: "mock", fallback: true };
+  if (preferMock) {
+    const { mockDashboard } = await import("@/lib/mock");
+    return { data: await mockDashboard(), source: "mock", fallback: false };
   }
+
+  const data = await apiGet<ApiDashboardOverview>(`/dashboard/overview`);
+  return { data: mapApiDashboardOverview(data), source: "api", fallback: false };
 }
 
 // compat: mantém assinatura antiga

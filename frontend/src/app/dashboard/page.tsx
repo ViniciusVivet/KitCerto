@@ -2,7 +2,6 @@
 
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
-import { mockBestSellers, mockSearchSold } from "@/lib/mock";
 import { getDashboardOverviewWithMeta } from "@/services/dashboard";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,9 +16,14 @@ ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarEle
 export default function DashboardPage() {
   const { data: meta, isLoading } = useQuery({ queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getDashboardOverviewWithMeta() });
   const data = meta?.data;
-  const { data: best } = useQuery({ queryKey: ["best"], queryFn: () => mockBestSellers(5) });
   const [q, setQ] = React.useState("");
-  const { data: soldSearch } = useQuery({ queryKey: ["sold", q], queryFn: () => mockSearchSold(q) });
+  const best = React.useMemo(() => (data?.topProductsByValue ?? []).slice(0, 5), [data]);
+  const soldSearch = React.useMemo(() => {
+    const list = data?.topProductsByValue ?? [];
+    if (!q) return list;
+    const query = q.toLowerCase();
+    return list.filter((p) => p.name.toLowerCase().includes(query));
+  }, [data, q]);
 
   const byCategory = data?.byCategory ?? [];
   const byCategoryValue = data?.byCategoryValue ?? [];
@@ -120,26 +124,26 @@ export default function DashboardPage() {
       {/* Pesquisar vendidos (prioritário) + Mais vendidos */}
       <section className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <Card className="p-4">
-          <h3 className="mb-2 text-sm text-muted-foreground">Pesquisar vendidos</h3>
-          <div className="mb-3"><Input placeholder="Buscar produto vendido..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
+          <h3 className="mb-2 text-sm text-muted-foreground">Pesquisar produtos</h3>
+          <div className="mb-3"><Input placeholder="Buscar produto..." value={q} onChange={(e) => setQ(e.target.value)} /></div>
           <div className="max-h-72 overflow-auto rounded-md border">
             <ul className="divide-y">
-              {(soldSearch?.items ?? []).map((p) => (
+              {(soldSearch ?? []).map((p) => (
                 <li key={p.id} className="flex items-center justify-between p-3">
                   <span className="truncate pr-2">{p.name}</span>
-                  <span className="text-sm text-muted-foreground">{p.sold?.toLocaleString("pt-BR")} un.</span>
+                  <span className="text-sm text-muted-foreground">{p.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
                 </li>
               ))}
             </ul>
           </div>
         </Card>
         <Card className="p-4">
-          <h3 className="mb-2 text-sm text-muted-foreground">Mais vendidos</h3>
+          <h3 className="mb-2 text-sm text-muted-foreground">Top por valor em estoque</h3>
           <ul className="space-y-2">
             {(best ?? []).map((p) => (
               <li key={p.id} className="flex items-center justify-between rounded-md border p-3">
                 <span className="truncate pr-2">{p.name}</span>
-                <span className="text-sm text-muted-foreground">{p.sold?.toLocaleString("pt-BR")} un.</span>
+                <span className="text-sm text-muted-foreground">{p.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
               </li>
             ))}
           </ul>
