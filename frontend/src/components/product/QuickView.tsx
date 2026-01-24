@@ -8,6 +8,7 @@ import { useToast } from "@/context/toast";
 
 export function QuickView({ trigger, id, name, price, media }: { trigger: React.ReactNode; id: string; name: string; price: number; media?: { url: string; type: string }[] }) {
   const { dispatch } = useCart();
+  const [open, setOpen] = React.useState(false);
   const [qty, setQty] = React.useState(1);
   const [size, setSize] = React.useState<string | null>(null);
   const [color, setColor] = React.useState<string | null>(null);
@@ -21,10 +22,21 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
   const [dragging, setDragging] = React.useState(false);
   const [offset, setOffset] = React.useState({ x: 0, y: 0 });
   const dragStart = React.useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const swipeStart = React.useRef<{ x: number } | null>(null);
 
   React.useEffect(() => {
     setActiveIndex(0);
   }, [mediaList.length]);
+
+  React.useEffect(() => {
+    if (!open || mediaList.length === 0) return;
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "ArrowLeft") handlePrev();
+      if (e.key === "ArrowRight") handleNext();
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [open, mediaList.length]);
 
   function handlePrev() {
     if (mediaList.length === 0) return;
@@ -60,16 +72,35 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
     dragStart.current = null;
   }
 
+  function handleSwipeStart(e: React.PointerEvent<HTMLDivElement>) {
+    swipeStart.current = { x: e.clientX };
+  }
+
+  function handleSwipeEnd(e: React.PointerEvent<HTMLDivElement>) {
+    if (!swipeStart.current) return;
+    const dx = e.clientX - swipeStart.current.x;
+    swipeStart.current = null;
+    if (Math.abs(dx) < 40) return;
+    if (dx > 0) handlePrev();
+    else handleNext();
+  }
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent>
+      <DialogContent className="w-[95vw] max-w-6xl">
         <DialogHeader>
           <DialogTitle>{name}</DialogTitle>
           <DialogDescription>Detalhes do produto. Escolha quantidade e adicione ao carrinho.</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-4 gap-3">
-          <div className="col-span-3 relative aspect-video w-full rounded-md overflow-hidden bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5">
+        <div className="grid gap-4 md:grid-cols-[3fr_1fr]">
+          <div
+            className="relative aspect-video w-full rounded-md overflow-hidden bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5"
+            onPointerDown={handleSwipeStart}
+            onPointerUp={handleSwipeEnd}
+            onPointerCancel={handleSwipeEnd}
+            onPointerLeave={handleSwipeEnd}
+          >
             {active ? (
               active.type === "video" ? (
                 <video className="h-full w-full object-cover" src={active.url} muted loop playsInline autoPlay />
@@ -80,13 +111,13 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
             {mediaList.length > 1 && (
               <>
                 <button
-                  className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 px-3 py-2 text-xs text-white backdrop-blur hover:bg-white/30"
                   onClick={handlePrev}
                 >
                   ◀
                 </button>
                 <button
-                  className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 px-2 py-1 text-xs text-white hover:bg-black/60"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 px-3 py-2 text-xs text-white backdrop-blur hover:bg-white/30"
                   onClick={handleNext}
                 >
                   ▶
@@ -94,7 +125,7 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
               </>
             )}
           </div>
-          <div className="col-span-1 flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {thumbs.length > 0 ? (
               thumbs.slice(0, 5).map((m, idx) => (
                 m.type === "video" ? (

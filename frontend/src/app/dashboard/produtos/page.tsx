@@ -18,6 +18,9 @@ export default function ProdutosPage() {
   const [editing, setEditing] = useState<any | null>(null);
   const [mediaFiles, setMediaFiles] = useState<File[]>([]);
   const [existingMedia, setExistingMedia] = useState<MediaItem[]>([]);
+  const MAX_IMAGES = 5;
+  const MAX_VIDEOS = 2;
+  const { notify } = useToast();
   const { data: products = { items: [], total: 0 } } = useQuery({ queryKey: ["prod", q], queryFn: () => listProducts({ name: q }) });
   const { data: categories = [] } = useQuery({ queryKey: ["cats"], queryFn: () => listCategories() });
   const mediaPreviews = useMemo(
@@ -48,6 +51,41 @@ export default function ProdutosPage() {
     mutationFn: (id: string) => deleteProduct(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["prod"] }),
   });
+
+  function applyMediaLimits(files: File[], existing: MediaItem[]) {
+    const normalizedExisting = (existing ?? []).map((m: any) => ({ type: m.type ?? m.Type }));
+    let imageCount = normalizedExisting.filter((m) => m.type === "image").length;
+    let videoCount = normalizedExisting.filter((m) => m.type === "video").length;
+    const accepted: File[] = [];
+    let skipped = 0;
+
+    files.forEach((file) => {
+      const type = file.type.startsWith("video/") ? "video" : file.type.startsWith("image/") ? "image" : null;
+      if (!type) {
+        skipped += 1;
+        return;
+      }
+      if (type === "image" && imageCount < MAX_IMAGES) {
+        accepted.push(file);
+        imageCount += 1;
+      } else if (type === "video" && videoCount < MAX_VIDEOS) {
+        accepted.push(file);
+        videoCount += 1;
+      } else {
+        skipped += 1;
+      }
+    });
+
+    if (skipped > 0) {
+      notify({
+        title: "Limite de mídias",
+        description: "Máximo de 5 fotos e 2 vídeos por produto.",
+        variant: "error",
+      });
+    }
+
+    return accepted;
+  }
 
   async function handleCreateSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -111,8 +149,6 @@ export default function ProdutosPage() {
     e.currentTarget.reset();
   }
 
-  const { notify } = useToast();
-
   return (
     <ProtectedRoute requiredRole="admin">
     <section className="space-y-4">
@@ -163,9 +199,9 @@ export default function ProdutosPage() {
                   type="file"
                   multiple
                   accept="image/*,video/*"
-                  onChange={(e) => setMediaFiles(Array.from(e.target.files ?? []))}
+                  onChange={(e) => setMediaFiles(applyMediaLimits(Array.from(e.target.files ?? []), []))}
                 />
-                <p className="text-xs text-muted-foreground">PNG, JPG, WEBP, GIF, MP4, WEBM, MOV</p>
+                <p className="text-xs text-muted-foreground">Até 5 fotos e 2 vídeos (PNG, JPG, WEBP, GIF, MP4, WEBM, MOV)</p>
               </div>
               <div className="flex items-end">
                 <Button type="submit">Criar</Button>
@@ -222,7 +258,7 @@ export default function ProdutosPage() {
         product={editing}
         categories={categories}
         onSubmit={handleEditSubmit}
-        onMediaChange={setMediaFiles}
+        onMediaChange={(files) => setMediaFiles(applyMediaLimits(files, existingMedia))}
         mediaFiles={mediaFiles}
         existingMedia={existingMedia}
       />
@@ -326,7 +362,7 @@ function EditProductDialog({
                 accept="image/*,video/*"
                 onChange={(e) => onMediaChange(Array.from(e.target.files ?? []))}
               />
-              <p className="text-xs text-muted-foreground">PNG, JPG, WEBP, GIF, MP4, WEBM, MOV</p>
+              <p className="text-xs text-muted-foreground">Até 5 fotos e 2 vídeos (PNG, JPG, WEBP, GIF, MP4, WEBM, MOV)</p>
             </div>
             {(normalizedMedia.length > 0 || mediaFiles.length > 0) && (
               <div className="grid gap-2">
