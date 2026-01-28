@@ -3,6 +3,8 @@ import { useMocks } from "@/lib/config";
 import { mockSearchProducts, mockFetchCategories, mockCreateProduct, mockUpdateProduct, mockDeleteProduct } from "@/lib/mock";
 import { mockBestSellingProducts, mockLatestProducts } from "@/lib/mock";
 
+import { listCategories, listCategoriesWithMeta } from "./categories";
+
 export type ProductList = {
   items: any[];
   total: number;
@@ -15,15 +17,19 @@ export type DataMeta<T> = { data: T; source: DataSource; fallback: boolean };
 
 function getForcedDataSource(): DataSource | null {
   if (typeof window === "undefined") return null;
-  const url = new URL(window.location.href);
-  const raw = (url.searchParams.get("data") || url.searchParams.get("ds") || "").toLowerCase();
-  if (raw === "api" || raw === "mock") return raw;
+  try {
+    const url = new URL(window.location.href);
+    const raw = (url.searchParams.get("data") || url.searchParams.get("ds") || "").toLowerCase();
+    if (raw === "api" || raw === "mock") return raw as DataSource;
+  } catch {
+    return null;
+  }
   return null;
 }
 
-export async function listProductsWithMeta(params: { page?: number; pageSize?: number; name?: string; categoryId?: string }): Promise<DataMeta<ProductList>> {
+export async function listProductsWithMeta(params: { page?: number; pageSize?: number; name?: string; categoryId?: string }, skipMock: boolean = false): Promise<DataMeta<ProductList>> {
   const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
+  const preferMock = !skipMock && (useMocks || forced === "mock");
   if (preferMock) return { data: await mockSearchProducts(params.name, params.categoryId), source: "mock", fallback: false };
 
   try {
@@ -32,35 +38,36 @@ export async function listProductsWithMeta(params: { page?: number; pageSize?: n
     if (params.pageSize) q.set("pageSize", String(params.pageSize));
     if (params.name) q.set("name", params.name);
     if (params.categoryId) q.set("categoryId", params.categoryId);
-    const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/products?${q.toString()}`);
-    return { data: { items: data.items, total: data.total, page: data.page, pageSize: data.pageSize }, source: "api", fallback: false };
+    const data = await apiGet<any>(`/products?${q.toString()}`);
+    
+    const items = Array.isArray(data) ? data : (data?.items && Array.isArray(data.items)) ? data.items : [];
+    const total = data?.total ?? items.length;
+    
+    return { 
+      data: { 
+        items, 
+        total, 
+        page: data?.page ?? params.page ?? 1, 
+        pageSize: data?.pageSize ?? params.pageSize ?? items.length 
+      }, 
+      source: "api", 
+      fallback: false 
+    };
   } catch (error) {
     console.warn("Erro ao buscar produtos da API, usando fallback para mocks:", error);
+    if (skipMock) throw error;
     return { data: await mockSearchProducts(params.name, params.categoryId), source: "mock", fallback: true };
   }
 }
 
-export async function listProducts(params: { page?: number; pageSize?: number; name?: string; categoryId?: string }): Promise<ProductList> {
-  const { data } = await listProductsWithMeta(params);
-  return data;
+export async function listProducts(params: { page?: number; pageSize?: number; name?: string; categoryId?: string }, skipMock: boolean = false): Promise<ProductList> {
+  const result = await listProductsWithMeta(params, skipMock);
+  if (!result || !result.data) return { items: [], total: 0 };
+  return result.data;
 }
 
-export async function listCategoriesWithMeta(params?: { page?: number; pageSize?: number }): Promise<DataMeta<any[]>> {
-  const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
-  if (preferMock) return { data: await mockFetchCategories(), source: "mock", fallback: false };
+export { listCategories, listCategoriesWithMeta };
 
-  const q = new URLSearchParams();
-  if (params?.page) q.set("page", String(params.page));
-  if (params?.pageSize) q.set("pageSize", String(params.pageSize));
-  const data = await apiGet<{ page: number; pageSize: number; total: number; items: any[] }>(`/categories?${q.toString()}`);
-  return { data: data.items ?? (data as any), source: "api", fallback: false };
-}
-
-export async function listCategories(params?: { page?: number; pageSize?: number }) {
-  const { data } = await listCategoriesWithMeta(params);
-  return data;
-}
 
 // Novidades (API → fallback mocks)
 export async function getLatestProductsWithMeta(limit: number = 10): Promise<DataMeta<any[]>> {
@@ -87,8 +94,8 @@ export async function getBestSellingProductsWithMeta(limit: number = 10): Promis
 // CRUD
 export async function createProduct(payload: any) {
   const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
-  if (preferMock) {
+  // No dashboard, nunca usamos mock para escrita a menos que explicitamente forçado via URL
+  if (forced === "mock") {
     return Promise.resolve(mockCreateProduct(payload));
   }
   return apiPost<any>(`/products`, payload);
@@ -96,8 +103,7 @@ export async function createProduct(payload: any) {
 
 export async function updateProduct(id: string, payload: any) {
   const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
-  if (preferMock) {
+  if (forced === "mock") {
     return Promise.resolve(mockUpdateProduct(id, payload));
   }
   return apiPut<any>(`/products/${id}`, payload);
@@ -105,8 +111,7 @@ export async function updateProduct(id: string, payload: any) {
 
 export async function deleteProduct(id: string) {
   const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
-  if (preferMock) {
+  if (forced === "mock") {
     return Promise.resolve(mockDeleteProduct(id));
   }
   return apiDelete(`/products/${id}`);
@@ -114,6 +119,22 @@ export async function deleteProduct(id: string) {
 
 export async function getProductById(id: string) {
   return apiGet<any>(`/products/${id}`);
+}
+
+export async function updateProductStock(id: string, stock: number) {
+  const forced = getForcedDataSource();
+  if (forced === "mock") {
+    return Promise.resolve(mockUpdateProduct(id, { stock }));
+  }
+  // Usamos PATCH para atualização parcial de estoque
+  return fetch(`${apiBaseUrl}/products/${id}/stock`, {
+    method: "PATCH",
+    headers: { 
+      "Content-Type": "application/json", 
+      Authorization: getToken() ? `Bearer ${getToken()}` : "" 
+    },
+    body: JSON.stringify({ stock }),
+  });
 }
 
 

@@ -1,3 +1,4 @@
+import { apiBaseUrl } from "@/lib/config";
 import { getToken } from "@/lib/keycloak";
 
 export type MediaItem = { url: string; type: "image" | "video"; fileName: string };
@@ -7,7 +8,7 @@ export async function uploadMedia(files: File[]): Promise<MediaItem[]> {
   const formData = new FormData();
   files.forEach((f) => formData.append("files", f));
 
-  const res = await fetch(`/api/media/upload`, {
+  const res = await fetch(`${apiBaseUrl}/media/upload`, {
     method: "POST",
     headers: { Authorization: getToken() ? `Bearer ${getToken()}` : "" },
     body: formData,
