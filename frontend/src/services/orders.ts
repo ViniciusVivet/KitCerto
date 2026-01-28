@@ -27,6 +27,10 @@ export async function listOrders(): Promise<Order[]> {
   return apiGet<Order[]>(`/orders`);
 }
 
+export async function listAllOrders(): Promise<Order[]> {
+  return apiGet<Order[]>(`/orders/all`);
+}
+
 export async function createOrderCheckout(payload: {
   items: { productId: string; quantity: number }[];
   shipping?: OrderShipping;
