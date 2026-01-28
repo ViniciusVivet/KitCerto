@@ -12,6 +12,7 @@ import React from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCart } from "@/context/cart";
 import { useToast } from "@/context/toast";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 function StatusBadge({ s }: { s: Order["status"] }) {
   const map: Record<Order["status"], string> = {
@@ -33,7 +34,8 @@ export default function OrdersPage() {
   const { notify } = useToast();
 
   return (
-    <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
+    <ProtectedRoute unauthTitle="Entre para ver seus pedidos" unauthMessage="Faça login para consultar e acompanhar seus pedidos.">
+      <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
       <section className="mb-6">
         <h1 className="text-2xl font-semibold">Meus pedidos</h1>
         <p className="text-sm text-muted-foreground">Acompanhe seus pedidos, favorite e repita compras.</p>
@@ -92,6 +94,13 @@ export default function OrdersPage() {
             {isLoading && Array.from({ length: 6 }).map((_, i) => (
               <Card key={`sk-${i}`} className="h-28 animate-pulse" />
             ))}
+            {!isLoading && (orders ?? []).length === 0 && (
+              <Card className="p-6">
+                <div className="text-center text-muted-foreground">
+                  Você ainda não possui pedidos.
+                </div>
+              </Card>
+            )}
             {!isLoading && (orders ?? [])
               .filter((o) => (status ? o.status === status : true))
               .filter((o) => (days ? (Date.now() - new Date(o.createdAtUtc).getTime()) <= days * 86400000 : true))
@@ -120,7 +129,8 @@ export default function OrdersPage() {
           </div>
         </div>
       </section>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }
 

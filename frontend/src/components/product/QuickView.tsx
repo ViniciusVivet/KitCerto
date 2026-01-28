@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/cart";
 import React from "react";
 import { useToast } from "@/context/toast";
+import { X } from "lucide-react";
 
 export function QuickView({ trigger, id, name, price, media }: { trigger: React.ReactNode; id: string; name: string; price: number; media?: { url: string; type: string }[] }) {
   const { dispatch } = useCart();
@@ -88,101 +89,124 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="w-[95vw] max-w-6xl">
-        <DialogHeader>
-          <DialogTitle>{name}</DialogTitle>
-          <DialogDescription>Detalhes do produto. Escolha quantidade e adicione ao carrinho.</DialogDescription>
-        </DialogHeader>
-        <div className="grid gap-4 md:grid-cols-[3fr_1fr]">
-          <div
-            className="relative aspect-video w-full rounded-md overflow-hidden bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5"
-            onPointerDown={handleSwipeStart}
-            onPointerUp={handleSwipeEnd}
-            onPointerCancel={handleSwipeEnd}
-            onPointerLeave={handleSwipeEnd}
-          >
-            {active ? (
-              active.type === "video" ? (
-                <video className="h-full w-full object-cover" src={active.url} muted loop playsInline autoPlay />
-              ) : (
-                <img className="h-full w-full object-cover cursor-zoom-in" src={active.url} alt={name} onClick={openZoom} />
-              )
-            ) : null}
-            {mediaList.length > 1 && (
-              <>
-                <button
-                  className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 px-3 py-2 text-xs text-white backdrop-blur hover:bg-white/30"
-                  onClick={handlePrev}
-                >
-                  ◀
-                </button>
-                <button
-                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/20 px-3 py-2 text-xs text-white backdrop-blur hover:bg-white/30"
-                  onClick={handleNext}
-                >
-                  ▶
-                </button>
-              </>
-            )}
-          </div>
-          <div className="flex flex-col gap-2">
-            {thumbs.length > 0 ? (
-              thumbs.slice(0, 5).map((m, idx) => (
-                m.type === "video" ? (
-                  <button key={idx} className={`rounded-md border ${idx === activeIndex ? "border-primary" : "border-transparent"}`} onClick={() => setActiveIndex(idx)}>
-                    <video className="h-16 w-full rounded-md object-cover" src={m.url} muted loop playsInline />
-                  </button>
+      <DialogContent className="w-[98vw] max-w-[90rem] h-[92vh] flex flex-col p-0 overflow-hidden border-primary/20 bg-background/95 backdrop-blur-2xl shadow-2xl">
+        <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
+          {/* Lado Esquerdo: Media (Maior) */}
+          <div className="relative flex-[2.5] bg-black/40 flex flex-col border-r border-white/5">
+            <div
+              className="relative flex-1 w-full flex items-center justify-center overflow-hidden"
+              onPointerDown={handleSwipeStart}
+              onPointerUp={handleSwipeEnd}
+              onPointerCancel={handleSwipeEnd}
+              onPointerLeave={handleSwipeEnd}
+            >
+              {active ? (
+                active.type === "video" ? (
+                  <video className="max-h-full max-w-full object-contain pointer-events-none" src={active.url} muted loop playsInline autoPlay />
                 ) : (
-                  <button key={idx} className={`rounded-md border ${idx === activeIndex ? "border-primary" : "border-transparent"}`} onClick={() => setActiveIndex(idx)}>
-                    <img className="h-16 w-full rounded-md object-cover" src={m.url} alt={name} />
-                  </button>
+                  <img className="max-h-full max-w-full object-contain cursor-zoom-in select-none" src={active.url} alt={name} onClick={openZoom} />
                 )
-              ))
-            ) : (
-              <>
-                <div className="h-16 rounded-md bg-muted" />
-                <div className="h-16 rounded-md bg-muted" />
-                <div className="h-16 rounded-md bg-muted" />
-                <div className="h-16 rounded-md bg-muted" />
-              </>
+              ) : null}
+              
+              {mediaList.length > 1 && (
+                <>
+                  <button
+                    className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-4 text-white backdrop-blur-md transition-all hover:bg-black/60 hover:scale-110 active:scale-95"
+                    onClick={handlePrev}
+                  >
+                    ◀
+                  </button>
+                  <button
+                    className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-4 text-white backdrop-blur-md transition-all hover:bg-black/60 hover:scale-110 active:scale-95"
+                    onClick={handleNext}
+                  >
+                    ▶
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Thumbs Horizontais (Opcional, se preferir embaixo) */}
+            {mediaList.length > 1 && (
+              <div className="h-24 w-full bg-black/10 backdrop-blur-sm p-2 flex justify-center gap-2 overflow-x-auto border-t border-white/5">
+                {mediaList.map((m, idx) => (
+                  <button 
+                    key={idx} 
+                    className={`h-full aspect-square rounded-md border-2 overflow-hidden transition-all ${idx === activeIndex ? "border-primary scale-105" : "border-transparent opacity-60 hover:opacity-100"}`} 
+                    onClick={() => setActiveIndex(idx)}
+                  >
+                    {m.type === "video" ? (
+                      <video className="h-full w-full object-cover" src={m.url} muted />
+                    ) : (
+                      <img className="h-full w-full object-cover" src={m.url} alt={name} />
+                    )}
+                  </button>
+                ))}
+              </div>
             )}
           </div>
-        </div>
-        <div className="space-y-3">
-          <div>
-            <div className="mb-1 text-sm text-muted-foreground">Tamanho</div>
-            <div className="flex flex-wrap gap-2">
-              {["P", "M", "G", "GG"].map((s) => (
-                <button key={s} onClick={() => setSize(s)} className={`rounded-md border px-3 py-1 text-sm ${size === s ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>{s}</button>
-              ))}
+
+          {/* Lado Direito: Info */}
+          <div className="flex-1 flex flex-col border-l border-white/5 bg-background p-6 overflow-y-auto">
+            <div className="mb-6 flex justify-between items-start">
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight">{name}</h2>
+                <div className="mt-2 text-2xl font-semibold text-primary">{price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
+              </div>
+              <DialogClose asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <X className="h-5 w-5" />
+                </Button>
+              </DialogClose>
             </div>
-          </div>
-          <div>
-            <div className="mb-1 text-sm text-muted-foreground">Cor</div>
-            <div className="flex flex-wrap gap-2">
-              {["Preto", "Branco", "Azul"].map((c) => (
-                <button key={c} onClick={() => setColor(c)} className={`rounded-md border px-3 py-1 text-sm ${color === c ? "bg-accent text-accent-foreground" : "hover:bg-muted"}`}>{c}</button>
-              ))}
+
+            <div className="space-y-8 flex-1">
+              <div>
+                <div className="mb-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">Tamanho</div>
+                <div className="flex flex-wrap gap-3">
+                  {["P", "M", "G", "GG"].map((s) => (
+                    <button key={s} onClick={() => setSize(s)} className={`h-12 w-14 rounded-xl border-2 transition-all font-semibold ${size === s ? "border-primary bg-primary/10 text-primary" : "border-border hover:border-primary/50"}`}>{s}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 text-sm font-medium uppercase tracking-wider text-muted-foreground">Cor</div>
+                <div className="flex flex-wrap gap-3">
+                  {["Preto", "Branco", "Azul"].map((c) => (
+                    <button key={c} onClick={() => setColor(c)} className={`h-12 px-6 rounded-xl border-2 transition-all font-semibold ${color === c ? "border-accent bg-accent/10 text-accent" : "border-border hover:border-accent/50"}`}>{c}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="rounded-2xl bg-muted/50 p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Quantidade</span>
+                  <div className="flex items-center gap-4 bg-background rounded-full p-1 border">
+                    <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => Math.max(1, q - 1))}>-</button>
+                    <span className="w-4 text-center font-bold">{qty}</span>
+                    <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => q + 1)}>+</button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between border-t border-border pt-4">
+                  <span className="text-sm font-medium text-muted-foreground">Total</span>
+                  <span className="text-2xl font-bold">{(price * qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <button className="rounded-md border px-2" onClick={() => setQty((q) => Math.max(1, q - 1))}>-</button>
-              <span className="w-8 text-center">{qty}</span>
-              <button className="rounded-md border px-2" onClick={() => setQty((q) => q + 1)}>+</button>
-            </div>
-            <span className="text-xl font-semibold">{(price * qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
-            <DialogClose asChild>
-              <Button
-                onClick={() => {
-                  dispatch({ type: "add", item: { id, name, price, qty } });
-                  notify({ title: "Adicionado ao carrinho", description: `${name} (${size ?? "-"}/${color ?? "-"})`, variant: "success" });
-                }}
-                disabled={!size || !color}
-              >
-                Adicionar
-              </Button>
-            </DialogClose>
+
+            <Button
+              size="lg"
+              className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] mt-8"
+              onClick={() => {
+                dispatch({ type: "add", item: { id, name, price, qty } });
+                notify({ title: "Adicionado ao carrinho", description: `${name} (${size ?? "-"}/${color ?? "-"})`, variant: "success" });
+                setOpen(false);
+              }}
+              disabled={!size || !color}
+            >
+              Adicionar ao Carrinho
+            </Button>
           </div>
         </div>
       </DialogContent>

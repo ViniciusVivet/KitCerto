@@ -24,15 +24,28 @@ export async function apiGet<T>(path: string, init?: RequestInit): Promise<T> {
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401) {
-        // Token expirado ou inválido
-        console.warn("Token expirado ou inválido, redirecionando para login");
+        // Token expirado ou usuário não autenticado
+        console.warn("Token inválido/ausente. Iniciando fluxo de login…");
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          try {
+            const { login } = await import('@/lib/keycloak');
+            login();
+          } catch {
+            // fallback suave
+            window.location.href = '/';
+          }
         }
       }
       throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
     }
-    return res.json();
+    
+    if (res.status === 204) return undefined as unknown as T;
+    
+    try {
+      return res.json();
+    } catch {
+      return undefined as unknown as T;
+    }
   } catch (error) {
     console.error(`Erro na requisição GET ${normalizedPath}:`, error);
     throw error;
@@ -54,14 +67,25 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401) {
-        console.warn("Token expirado ou inválido, redirecionando para login");
+        console.warn("Token inválido/ausente. Iniciando fluxo de login…");
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          try {
+            const { login } = await import('@/lib/keycloak');
+            login();
+          } catch {
+            window.location.href = '/';
+          }
         }
       }
       throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
     }
-    return res.json();
+    
+    if (res.status === 204) return undefined as unknown as T;
+    try {
+      return await res.json();
+    } catch {
+      return undefined as unknown as T;
+    }
   } catch (error) {
     console.error(`Erro na requisição POST ${normalizedPath}:`, error);
     throw error;
@@ -83,14 +107,25 @@ export async function apiPut<T>(path: string, body: unknown, init?: RequestInit)
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401) {
-        console.warn("Token expirado ou inválido, redirecionando para login");
+        console.warn("Token inválido/ausente. Iniciando fluxo de login…");
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          try {
+            const { login } = await import('@/lib/keycloak');
+            login();
+          } catch {
+            window.location.href = '/';
+          }
         }
       }
       throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
     }
-    return res.json();
+    
+    if (res.status === 204) return undefined as unknown as T;
+    try {
+      return await res.json();
+    } catch {
+      return undefined as unknown as T;
+    }
   } catch (error) {
     console.error(`Erro na requisição PUT ${normalizedPath}:`, error);
     throw error;
@@ -111,13 +146,20 @@ export async function apiDelete<T = void>(path: string, init?: RequestInit): Pro
     if (!res.ok) {
       const text = await res.text().catch(() => "");
       if (res.status === 401) {
-        console.warn("Token expirado ou inválido, redirecionando para login");
+        console.warn("Token inválido/ausente. Iniciando fluxo de login…");
         if (typeof window !== 'undefined') {
-          window.location.href = '/login';
+          try {
+            const { login } = await import('@/lib/keycloak');
+            login();
+          } catch {
+            window.location.href = '/';
+          }
         }
       }
       throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
     }
+    
+    if (res.status === 204) return undefined as unknown as T;
     
     try {
       return (await res.json()) as T;

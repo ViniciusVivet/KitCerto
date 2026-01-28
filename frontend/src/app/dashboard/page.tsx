@@ -10,20 +10,41 @@ import { Doughnut, Bar } from "react-chartjs-2";
 import { Package, AlertTriangle, CircleDollarSign } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
+import { listProducts } from "@/services/products";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 export default function DashboardPage() {
-  const { data: meta, isLoading } = useQuery({ queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getDashboardOverviewWithMeta() });
+  const { data: meta, isLoading, error } = useQuery({ 
+    queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], 
+    queryFn: () => getDashboardOverviewWithMeta(true),
+    retry: false 
+  });
+
+  const { data: productsMeta } = useQuery({
+    queryKey: ["prod-list-dash"],
+    queryFn: () => listProducts({ pageSize: 1000 }, true)
+  });
+
   const data = meta?.data;
+  const realProductsCount = productsMeta?.items?.length ?? 0;
+  
   const [q, setQ] = React.useState("");
-  const best = React.useMemo(() => (data?.topProductsByValue ?? []).slice(0, 5), [data]);
+  
+  const topProducts = React.useMemo(() => {
+    if (!productsMeta?.items) return data?.topProductsByValue ?? [];
+    return [...productsMeta.items]
+      .map(p => ({ id: p.id, name: p.name, value: p.price * p.stock }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+  }, [productsMeta, data]);
+
   const soldSearch = React.useMemo(() => {
-    const list = data?.topProductsByValue ?? [];
+    const list = topProducts;
     if (!q) return list;
     const query = q.toLowerCase();
     return list.filter((p) => p.name.toLowerCase().includes(query));
-  }, [data, q]);
+  }, [topProducts, q]);
 
   const byCategory = data?.byCategory ?? [];
   const byCategoryValue = data?.byCategoryValue ?? [];
@@ -45,8 +66,8 @@ export default function DashboardPage() {
     ],
   };
 
-  const doughnutData = {
-    labels: barData.labels,
+  const doughData = {
+    labels: byCategory.map((x) => x.categoryName ?? x.categoryId),
     datasets: [
       {
         label: "Distribuição",
@@ -61,6 +82,8 @@ export default function DashboardPage() {
       },
     ],
   };
+
+  const doughnutData = doughData; // use the newly created doughData
 
   const valueBarData = {
     labels: byCategoryValue.map((x) => x.categoryName ?? x.categoryId),
@@ -106,7 +129,7 @@ export default function DashboardPage() {
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <KpiCard
           title="Total de produtos"
-          value={isLoading ? "…" : data?.totalProducts?.toString() ?? "0"}
+          value={isLoading ? "…" : (realProductsCount || data?.totalProducts || "0").toString()}
           icon={<Package className="h-5 w-5 text-primary" />}
         />
         <KpiCard
@@ -140,7 +163,7 @@ export default function DashboardPage() {
         <Card className="p-4">
           <h3 className="mb-2 text-sm text-muted-foreground">Top por valor em estoque</h3>
           <ul className="space-y-2">
-            {(best ?? []).map((p) => (
+            {(topProducts ?? []).map((p) => (
               <li key={p.id} className="flex items-center justify-between rounded-md border p-3">
                 <span className="truncate pr-2">{p.name}</span>
                 <span className="text-sm text-muted-foreground">{p.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
@@ -192,7 +215,7 @@ export default function DashboardPage() {
         <Card className="p-4">
           <h3 className="mb-2 text-sm text-muted-foreground">Top 5 por valor em estoque</h3>
           <ul className="space-y-2">
-            {(data?.topProductsByValue ?? []).map((p) => (
+            {(topProducts ?? []).map((p) => (
               <li key={p.id} className="flex items-center justify-between rounded-md border p-3">
                 <span className="truncate pr-2">{p.name}</span>
                 <span className="font-medium">{p.value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>

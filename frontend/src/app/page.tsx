@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
-import { listProductsWithMeta, listCategoriesWithMeta, getBestSellingProductsWithMeta, getLatestProductsWithMeta } from "@/services/products";
+import { listProductsWithMeta, getBestSellingProductsWithMeta, getLatestProductsWithMeta } from "@/services/products";
+import { listCategoriesWithMeta } from "@/services/categories";
 import { HorizontalCarousel } from "@/components/ui/carousel";
 import { useState } from "react";
 import { useCart } from "@/context/cart";
 import { useFavorites } from "@/context/favorites";
-import { Heart } from "lucide-react";
+import { Heart, Search } from "lucide-react";
 import { QuickView } from "@/components/product/QuickView";
 import { useToast } from "@/context/toast";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
@@ -21,7 +22,7 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
   const { notify } = useToast();
   const cover = media?.[0];
   return (
-    <Card className="group overflow-hidden transition-shadow hover:shadow-[0_0_24px_rgba(59,130,246,0.25)]">
+    <Card className="group overflow-hidden transition-shadow hover:shadow-[0_0_24px_rgba(59,130,246,0.25)] border-white/5 bg-white/5">
       <CardHeader className="p-0">
         <QuickView
           id={id}
@@ -31,16 +32,20 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
           trigger={
             cover ? (
               cover.type === "video" ? (
-                <video
-                  className="aspect-square w-full object-cover"
-                  src={cover.url}
-                  muted
-                  loop
-                  playsInline
-                  autoPlay
-                />
+                <div className="aspect-square w-full bg-black flex items-center justify-center cursor-pointer">
+                  <video
+                    className="h-full w-full object-contain"
+                    src={cover.url}
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                  />
+                </div>
               ) : (
-                <img className="aspect-square w-full object-cover" src={cover.url} alt={name} />
+                <div className="aspect-square w-full bg-black/5 flex items-center justify-center cursor-pointer">
+                  <img className="h-full w-full object-contain" src={cover.url} alt={name} />
+                </div>
               )
             ) : (
               <div className="aspect-square w-full cursor-pointer bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />
@@ -48,17 +53,17 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
           }
         />
       </CardHeader>
-      <CardContent className="space-y-1 p-4">
-        <p className="text-sm text-muted-foreground">Street • Semi-jóias</p>
-        <h3 className="font-medium">{name}</h3>
-        <p className="text-primary font-semibold">{price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
+      <CardContent className="space-y-1 p-4 flex-1">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Street • Premium</p>
+        <h3 className="font-bold text-sm line-clamp-1 group-hover:text-primary transition-colors">{name}</h3>
+        <p className="text-primary font-bold">{price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <div className="flex w-full items-center gap-2">
-          <Button className="flex-1" onClick={() => { dispatch({ type: "add", item: { id, name, price, qty: 1 } }); notify({ title: "Adicionado ao carrinho", description: name, variant: "success" }); }}>
-            Adicionar ao carrinho
+          <Button size="sm" className="flex-1 font-bold h-9" onClick={() => { dispatch({ type: "add", item: { id, name, price, qty: 1 } }); notify({ title: "Adicionado ao carrinho", description: name, variant: "success" }); }}>
+            Comprar
           </Button>
-          <Button variant={isFav(id) ? "default" : "secondary"} size="icon" aria-label="Favoritar" onClick={() => toggle(id)}>
+          <Button variant={isFav(id) ? "default" : "secondary"} size="icon" className="h-9 w-9" aria-label="Favoritar" onClick={() => toggle(id)}>
             <Heart className={`h-4 w-4 ${isFav(id) ? "fill-primary" : ""}`} />
           </Button>
         </div>
@@ -71,14 +76,31 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | undefined>(undefined);
   const { isAuthenticated, register } = useAuth();
-  const { data: catsMeta } = useQuery({ queryKey: ["cats", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listCategoriesWithMeta() });
-  const cats = catsMeta?.data;
-  const { data: productsMeta, isLoading } = useQuery({ queryKey: ["products", q, cat, typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }) });
+  const { data: catsMeta, isLoading: isLoadingCats } = useQuery({ 
+    queryKey: ["cats"], 
+    queryFn: () => listCategoriesWithMeta() 
+  });
+  const cats = catsMeta?.data ?? [];
+  
+  const { data: productsMeta, isLoading: isLoadingProducts } = useQuery({ 
+    queryKey: ["products", q, cat], 
+    queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }) 
+  });
   const products = productsMeta?.data;
-  const { data: bestMeta } = useQuery({ queryKey: ["bestSelling", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getBestSellingProductsWithMeta(10) });
-  const bestSelling = bestMeta?.data;
-  const { data: latestMeta } = useQuery({ queryKey: ["latest", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], queryFn: () => getLatestProductsWithMeta(10) });
-  const latest = latestMeta?.data;
+  
+  const { data: bestMeta, isLoading: isLoadingBest } = useQuery({ 
+    queryKey: ["bestSelling"], 
+    queryFn: () => getBestSellingProductsWithMeta(10) 
+  });
+  const bestSelling = bestMeta?.data ?? [];
+  
+  const { data: latestMeta, isLoading: isLoadingLatest } = useQuery({ 
+    queryKey: ["latest"], 
+    queryFn: () => getLatestProductsWithMeta(10) 
+  });
+  const latest = latestMeta?.data ?? [];
+
+  const isLoading = isLoadingProducts || isLoadingCats;
 
   return (
     <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
@@ -98,19 +120,34 @@ export default function Home() {
             <p className="text-sm text-muted-foreground">Monte seu look com estilo</p>
           </div>
         </div>
-        <div className="border-t p-4 flex flex-wrap items-center gap-2">
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar produtos..." className="w-full sm:w-96" />
-          <div className="hidden md:flex flex-wrap gap-2">
-            <Badge onClick={() => setCat(undefined)} className={!cat ? "bg-primary text-primary-foreground" : "cursor-pointer"}>Todas</Badge>
+        <div className="border-t p-4 flex flex-wrap items-center gap-4 bg-background/50 backdrop-blur-md sticky top-0 z-20 shadow-sm">
+          <div className="relative w-full sm:w-96 group">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+            <Input 
+              value={q} 
+              onChange={(e) => setQ(e.target.value)} 
+              placeholder="Buscar produtos, marcas e categorias..." 
+              className="w-full pl-10 h-11 bg-background/50 border-white/10 focus-visible:ring-primary" 
+            />
+          </div>
+          
+          <div className="hidden md:flex items-center gap-3 overflow-x-auto pb-1 no-scrollbar scroll-smooth flex-1 max-w-[calc(100vw-35rem)]">
+            <button 
+              onClick={() => setCat(undefined)} 
+              className={`whitespace-nowrap px-5 py-2.5 transition-all rounded-full text-sm font-bold border-2 ${!cat ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30 scale-105" : "bg-white/5 text-muted-foreground border-white/5 hover:bg-white/10 hover:text-foreground hover:border-white/20"}`}
+            >
+              Todas as Peças
+            </button>
             {cats?.map((c) => (
-              <Badge key={c.id} onClick={() => setCat(c.id)} className={cat === c.id ? "bg-primary text-primary-foreground" : "cursor-pointer"}>
+              <button 
+                key={c.id} 
+                onClick={() => setCat(c.id)} 
+                className={`whitespace-nowrap px-5 py-2.5 transition-all rounded-full text-sm font-bold border-2 ${cat === c.id ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/30 scale-105" : "bg-white/5 text-muted-foreground border-white/5 hover:bg-white/10 hover:text-foreground hover:border-white/20"}`}
+              >
                 {c.name}
-              </Badge>
+              </button>
             ))}
           </div>
-          {!isAuthenticated && (
-            <Button onClick={register} className="ml-auto">Registrar</Button>
-          )}
           {/* Trigger filtros mobile */}
           <Sheet>
             <SheetTrigger className="md:hidden"><Badge className="cursor-pointer">Filtros</Badge></SheetTrigger>
@@ -144,35 +181,52 @@ export default function Home() {
 
       {/* Grid com barra lateral (desktop) – fica visível logo após o hero */}
       <section className="grid grid-cols-1 gap-6 md:grid-cols-[200px_1fr]">
-        <aside className="hidden md:block space-y-5 rounded-xl border p-3 sticky top-24 max-h-[calc(100dvh-7rem)] overflow-auto">
-          <div>
-            <h3 className="mb-1 text-sm font-medium">Categorias</h3>
-            <p className="mb-3 text-xs text-muted-foreground">Selecione para filtrar os resultados</p>
-            <div className="flex flex-wrap gap-2">
-              <Badge onClick={() => setCat(undefined)} className={!cat ? "bg-primary text-primary-foreground" : "cursor-pointer"}>Todas</Badge>
-              {cats?.map((c) => (
-                <Badge key={c.id} onClick={() => setCat(c.id)} className={cat === c.id ? "bg-primary text-primary-foreground" : "cursor-pointer"}>{c.name}</Badge>
-              ))}
+        <aside className="hidden md:block space-y-5 rounded-xl border p-4 sticky top-24 max-h-[calc(100dvh-7rem)] overflow-y-auto no-scrollbar scroll-smooth">
+          <div className="space-y-4">
+            <div>
+              <h3 className="mb-3 text-xs font-bold uppercase tracking-widest text-primary border-b border-primary/20 pb-2">Filtrar Categoria</h3>
+              <div className="flex flex-col gap-1">
+                <button 
+                  onClick={() => setCat(undefined)} 
+                  className={`text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${!cat ? "bg-primary/10 text-primary font-bold border-l-4 border-primary" : "hover:bg-white/5 text-muted-foreground hover:text-foreground hover:pl-4"}`}
+                >
+                  Todas as Peças
+                </button>
+                {cats?.map((c) => (
+                  <button 
+                    key={c.id} 
+                    onClick={() => setCat(c.id)} 
+                    className={`text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${cat === c.id ? "bg-primary/10 text-primary font-bold border-l-4 border-primary" : "hover:bg-white/5 text-muted-foreground hover:text-foreground hover:pl-4"}`}
+                  >
+                    {c.name}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
-          <hr className="border-border" />
-          <div>
-            <h3 className="mb-1 text-sm font-medium">Faixa de preço</h3>
-            <p className="mb-3 text-xs text-muted-foreground">Atalhos rápidos</p>
-            <div className="flex flex-wrap gap-2">
-              {["0–99", "100–199", "200–299", "300–499", "500+"].map((label) => (
-                <Badge key={label} onClick={() => setQ(label)} className="cursor-pointer">{label}</Badge>
-              ))}
+            
+            <div className="pt-4 border-t border-white/5">
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">Faixa de preço</h3>
+              <div className="flex flex-wrap gap-2">
+                {["0–99", "100–199", "200–299", "300–499", "500+"].map((label) => (
+                  <Badge 
+                    key={label} 
+                    onClick={() => setQ(label)} 
+                    className={`cursor-pointer transition-all ${q === label ? "bg-primary text-primary-foreground" : "bg-secondary/50 text-muted-foreground hover:bg-secondary"}`}
+                  >
+                    {label}
+                  </Badge>
+                ))}
+              </div>
             </div>
-          </div>
-          <hr className="border-border" />
-          <div>
-            <h3 className="mb-1 text-sm font-medium">Atalhos</h3>
-            <ul className="space-y-2 text-sm text-muted-foreground">
-              <li className="hover:text-foreground cursor-pointer">Favoritos</li>
-              <li className="hover:text-foreground cursor-pointer">Novidades</li>
-              <li className="hover:text-foreground cursor-pointer">Mais vendidos</li>
-            </ul>
+
+            <div className="pt-4 border-t border-white/5">
+              <h3 className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">Atalhos</h3>
+              <ul className="space-y-1 text-sm">
+                <li className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground cursor-pointer transition-colors">Favoritos</li>
+                <li className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground cursor-pointer transition-colors">Novidades</li>
+                <li className="px-3 py-2 rounded-lg text-muted-foreground hover:bg-white/5 hover:text-foreground cursor-pointer transition-colors">Mais vendidos</li>
+              </ul>
+            </div>
           </div>
         </aside>
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">

@@ -72,22 +72,29 @@ function getForcedDataSource(): DataSource | null {
   return null;
 }
 
-export async function getDashboardOverviewWithMeta(): Promise<DataMeta<DashboardOverview>> {
+export async function getDashboardOverviewWithMeta(skipMock: boolean = false): Promise<DataMeta<DashboardOverview>> {
   const forced = getForcedDataSource();
-  const preferMock = useMocks || forced === "mock";
+  const preferMock = !skipMock && (useMocks || forced === "mock");
   if (preferMock) {
     const { mockDashboard } = await import("@/lib/mock");
     return { data: await mockDashboard(), source: "mock", fallback: false };
   }
 
-  const data = await apiGet<ApiDashboardOverview>(`/dashboard/overview`);
-  return { data: mapApiDashboardOverview(data), source: "api", fallback: false };
+  try {
+    const data = await apiGet<ApiDashboardOverview>(`/dashboard/overview`);
+    return { data: mapApiDashboardOverview(data), source: "api", fallback: false };
+  } catch (error) {
+    console.warn("Erro ao buscar dashboard da API, usando fallback para mocks:", error);
+    if (skipMock) throw error;
+    const { mockDashboard } = await import("@/lib/mock");
+    return { data: await mockDashboard(), source: "mock", fallback: true };
+  }
 }
 
 // compat: mantém assinatura antiga
-export async function getDashboardOverview(): Promise<DashboardOverview> {
-  const { data } = await getDashboardOverviewWithMeta();
-  return data;
+export async function getDashboardOverview(skipMock: boolean = false): Promise<DashboardOverview> {
+  const result = await getDashboardOverviewWithMeta(skipMock);
+  return result?.data;
 }
 
 

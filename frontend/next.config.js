@@ -13,6 +13,16 @@ const nextConfig = {
     NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
     NEXT_PUBLIC_USE_MOCKS: process.env.NEXT_PUBLIC_USE_MOCKS,
   },
+
+  // Proxy para o backend em desenvolvimento (dentro do Docker)
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'http://api:5000/api/:path*',
+      },
+    ];
+  },
   
   // Headers de segurança
   async headers() {
