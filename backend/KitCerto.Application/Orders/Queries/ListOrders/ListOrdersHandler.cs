@@ -25,7 +25,8 @@ namespace KitCerto.Application.Orders.Queries.ListOrders
                 o.TotalAmount,
                 o.CreatedAtUtc.ToString("O"),
                 o.Items.Select(i => new OrderItemDto(i.ProductId, i.Name, i.UnitPrice, i.Quantity)).ToList(),
-                o.Shipping is null ? null : new OrderShippingDto(o.Shipping.AddressLine, o.Shipping.City, o.Shipping.State)
+                o.Shipping is null ? null : new OrderShippingDto(o.Shipping.AddressLine, o.Shipping.City, o.Shipping.State),
+                o.UserId
             )).ToList();
         }
     }

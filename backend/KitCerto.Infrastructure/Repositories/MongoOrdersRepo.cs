@@ -35,6 +35,11 @@ namespace KitCerto.Infrastructure.Repositories
             return await _col.Find(filter).SortByDescending(x => x.CreatedAtUtc).ToListAsync(ct);
         }
 
+        public async Task<IReadOnlyList<Order>> ListAllAsync(CancellationToken ct)
+        {
+            return await _col.Find(FilterDefinition<Order>.Empty).SortByDescending(x => x.CreatedAtUtc).ToListAsync(ct);
+        }
+
         public async Task UpdatePaymentAsync(string id, string provider, string preferenceId, CancellationToken ct)
         {
             var filter = Builders<Order>.Filter.Eq(x => x.Id, id);

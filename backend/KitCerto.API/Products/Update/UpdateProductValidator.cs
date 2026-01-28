@@ -7,10 +7,11 @@ namespace KitCerto.Application.Products.Update
     {
         public UpdateProductValidator()
         {
-            RuleFor(x => x.Id).NotEmpty();
+            // RuleFor(x => x.Id).NotEmpty(); // O Id vem da rota, não precisa validar no body
             RuleFor(x => x.Name).NotEmpty().MaximumLength(100);
             RuleFor(x => x.Price).GreaterThanOrEqualTo(0);
             RuleFor(x => x.Stock).GreaterThanOrEqualTo(0);
+            RuleFor(x => x.Quantity).GreaterThanOrEqualTo(0);
             RuleFor(x => x.CategoryId).NotEmpty();
             RuleFor(x => x.Media)
                 .Must(media =>

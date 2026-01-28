@@ -15,10 +15,10 @@ namespace KitCerto.Application.Products.Update
 
         public async Task Handle(UpdateProductCmd req, CancellationToken ct)
         {
-            var media = (req.Media ?? Array.Empty<UpdateProductMedia>())
+            var media = (req.Media ?? new List<UpdateProductMedia>())
                 .Select(m => new ProductMedia(m.Url, m.Type))
                 .ToList();
-            await _repo.UpdateAsync(req.Id, req.Name, req.Description, req.Price, req.Stock, req.CategoryId, media, ct);
+            await _repo.UpdateAsync(req.Id, req.Name, req.Description, req.Price, req.Stock, req.Quantity, req.CategoryId, media, ct);
         }
     }
 }

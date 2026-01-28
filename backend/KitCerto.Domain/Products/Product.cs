@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
+using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
 namespace KitCerto.Domain.Products
 {
     public sealed class Product
     {
-        [BsonElement("Id")] public string Id { get; private set; } = string.Empty;
+        [BsonId]
+        [BsonRepresentation(BsonType.String)]
+        public string Id { get; private set; } = string.Empty;
 
         [BsonElement("Name")] public string Name { get; private set; } = string.Empty;
         [BsonElement("Description")] public string Description { get; private set; } = string.Empty;

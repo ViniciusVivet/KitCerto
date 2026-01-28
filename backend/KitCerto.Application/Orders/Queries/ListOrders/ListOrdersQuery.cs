@@ -12,7 +12,8 @@ namespace KitCerto.Application.Orders.Queries.ListOrders
         decimal TotalAmount,
         string CreatedAtUtc,
         IReadOnlyList<OrderItemDto> Items,
-        OrderShippingDto? Shipping
+        OrderShippingDto? Shipping,
+        string? UserId = null
     );
 
     public sealed record OrderItemDto(

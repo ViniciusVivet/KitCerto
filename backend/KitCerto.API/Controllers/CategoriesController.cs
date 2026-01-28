@@ -8,11 +8,13 @@ using System.Threading.Tasks;
 using KitCerto.Application.Categories.Create;
 using KitCerto.Application.Categories.Queries.ListCategories;
 using KitCerto.Application.Categories.Queries.GetCategoryById;
+using KitCerto.Application.Categories.Update;
+using KitCerto.Application.Categories.Delete;
 
 namespace KitCerto.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/categories")]
     [Produces("application/json")]
     public sealed class CategoriesController : ControllerBase
     {
@@ -20,18 +22,9 @@ namespace KitCerto.API.Controllers
         public CategoriesController(IMediator mediator) => _mediator = mediator;
 
         /// <summary>Criar uma categoria</summary>
-        /// <remarks>
-        /// Exemplo de payload:
-        /// {
-        ///   "name": "Anéis",
-        ///   "description": "Categoria para anéis de prata e ouro"
-        /// }
-        /// </remarks>
         [Authorize(Roles = "admin")]
         [HttpPost]
         [ProducesResponseType(typeof(object), StatusCodes.Status201Created)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Create([FromBody] CreateCategoryCmd cmd, CancellationToken ct)
         {
             var id = await _mediator.Send(cmd, ct);
@@ -39,12 +32,7 @@ namespace KitCerto.API.Controllers
         }
 
         /// <summary>Listar categorias (paginação)</summary>
-        /// <param name="page">Página atual (default = 1)</param>
-        /// <param name="pageSize">Itens por página (default = 20)</param>
-        /// <param name="ct">Cancellation token</param>
         [HttpGet]
-        [ProducesResponseType(typeof(object[]), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> List(
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 20,
@@ -61,12 +49,7 @@ namespace KitCerto.API.Controllers
         }
 
         /// <summary>Obter categoria por ID</summary>
-        /// <param name="id">Identificador único da categoria</param>
-        /// <param name="ct">Cancellation token</param>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetById([FromRoute] string id, CancellationToken ct)
         {
             var cat = await _mediator.Send(new GetCategoryByIdQuery(id), ct);
@@ -79,6 +62,27 @@ namespace KitCerto.API.Controllers
                 name = cat.Name,
                 description = cat.Description
             });
+        }
+
+        /// <summary>Atualizar uma categoria</summary>
+        [Authorize(Roles = "admin")]
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateCategoryCmd body, CancellationToken ct)
+        {
+            var cmd = body with { Id = id };
+            await _mediator.Send(cmd, ct);
+            return NoContent();
+        }
+
+        /// <summary>Excluir uma categoria</summary>
+        [Authorize(Roles = "admin")]
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete([FromRoute] string id, CancellationToken ct)
+        {
+            await _mediator.Send(new DeleteCategoryCmd(id), ct);
+            return NoContent();
         }
     }
 }

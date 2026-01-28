@@ -10,6 +10,7 @@ namespace KitCerto.Domain.Repositories
         Task<string> CreateAsync(Order order, CancellationToken ct);
         Task<Order?> GetByIdAsync(string id, CancellationToken ct);
         Task<IReadOnlyList<Order>> ListByUserAsync(string userId, CancellationToken ct);
+        Task<IReadOnlyList<Order>> ListAllAsync(CancellationToken ct);
         Task UpdatePaymentAsync(string id, string provider, string preferenceId, CancellationToken ct);
     }
 }

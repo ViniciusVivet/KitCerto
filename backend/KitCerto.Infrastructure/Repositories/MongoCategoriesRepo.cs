@@ -77,15 +77,42 @@ namespace KitCerto.Infrastructure.Repositories
             return list;
         }
 
+        public async Task UpdateAsync(string id, string name, string description, CancellationToken ct)
+        {
+            var filter = Builders<Category>.Filter.Eq(x => x.Id, id);
+            var update = Builders<Category>.Update
+                .Set(x => x.Name, name)
+                .Set(x => x.Description, description);
+
+            await _col.UpdateOneAsync(filter, update, cancellationToken: ct);
+        }
+
+        public async Task DeleteAsync(string id, CancellationToken ct)
+        {
+            var filter = Builders<Category>.Filter.Eq(x => x.Id, id);
+            await _col.DeleteOneAsync(filter, cancellationToken: ct);
+        }
+
         private static Category MapCategory(BsonDocument doc)
         {
-            var name = doc.GetValue("Name", BsonNull.Value).IsBsonNull ? string.Empty : doc["Name"].AsString;
-            var desc = doc.GetValue("Description", BsonNull.Value).IsBsonNull ? string.Empty : doc["Description"].AsString;
+            // Tenta pegar Name ou name (case-insensitive)
+            string name = string.Empty;
+            if (doc.Contains("Name")) name = doc["Name"].AsString;
+            else if (doc.Contains("name")) name = doc["name"].AsString;
+
+            string desc = string.Empty;
+            if (doc.Contains("Description")) desc = doc["Description"].AsString;
+            else if (doc.Contains("description")) desc = doc["description"].AsString;
+
             var c = new Category(name, desc);
 
-            string id = doc.Contains("Id") && doc["Id"].BsonType == BsonType.String
-                ? doc["Id"].AsString
-                : doc.Contains("_id") ? doc["_id"].ToString() : string.Empty;
+            string id = string.Empty;
+            if (doc.Contains("_id"))
+                id = doc["_id"].ToString();
+            else if (doc.Contains("Id"))
+                id = doc["Id"].AsString;
+            else if (doc.Contains("id"))
+                id = doc["id"].AsString;
 
             typeof(Category).GetProperty(nameof(Category.Id), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
                 .SetValue(c, id);

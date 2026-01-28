@@ -17,7 +17,7 @@ using KitCerto.Application.Products.Queries.ListLowStock;
 namespace KitCerto.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/products")]
     [Produces("application/json")]
     public sealed class ProductsController : ControllerBase
     {
@@ -83,9 +83,9 @@ namespace KitCerto.API.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateProductCmd body, CancellationToken ct)
+        public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateProductCmd cmd, CancellationToken ct)
         {
-            var cmd = body with { Id = id };
+            cmd.Id = id;
             await _mediator.Send(cmd, ct);
             return NoContent();
         }

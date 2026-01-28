@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using KitCerto.Application.Orders.CreateCheckout;
 using KitCerto.Application.Orders.Queries.ListOrders;
 using KitCerto.Application.Orders.Queries.GetOrderById;
+using KitCerto.Application.Orders.Queries.ListAllOrders;
 
 namespace KitCerto.API.Controllers
 {
@@ -72,6 +73,16 @@ namespace KitCerto.API.Controllers
                 result.Currency,
                 result.CheckoutUrl
             });
+        }
+
+        /// <summary>Listar todos os pedidos (Admin)</summary>
+        [Authorize(Roles = "admin")]
+        [HttpGet("all")]
+        [ProducesResponseType(typeof(OrderDto[]), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ListAll(CancellationToken ct)
+        {
+            var list = await _mediator.Send(new ListAllOrdersQuery(), ct);
+            return Ok(list);
         }
 
         [Authorize]

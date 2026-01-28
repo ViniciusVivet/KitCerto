@@ -17,7 +17,7 @@ using Microsoft.Extensions.Hosting;
 namespace KitCerto.API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/media")]
     [Produces("application/json")]
     public sealed class MediaController : ControllerBase
     {
