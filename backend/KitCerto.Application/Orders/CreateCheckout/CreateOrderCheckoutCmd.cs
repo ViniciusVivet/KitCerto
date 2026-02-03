@@ -5,12 +5,14 @@ namespace KitCerto.Application.Orders.CreateCheckout
 {
     public sealed record CreateOrderCheckoutCmd(
         string UserId,
+        string? PayerEmail,
         IReadOnlyList<CreateOrderItem> Items,
         CreateOrderShipping? Shipping,
         string Currency,
         string SuccessUrl,
         string FailureUrl,
-        string PendingUrl
+        string PendingUrl,
+        string? CouponCode = null
     ) : IRequest<CreateOrderCheckoutResult>;
 
     public sealed record CreateOrderItem(string ProductId, int Quantity);

@@ -280,5 +280,22 @@ namespace KitCerto.Infrastructure.Repositories
             var filter = Builders<Product>.Filter.Lt(x => x.Stock, threshold);
             return await _col.Find(filter).ToListAsync(ct);
         }
+
+        public async Task<IReadOnlyList<Product>> ListBySellerIdAsync(string sellerId, int page, int pageSize, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(sellerId)) return new List<Product>();
+            if (page <= 0) page = 1;
+            if (pageSize <= 0) pageSize = 20;
+            var filter = Builders<Product>.Filter.Eq(x => x.SellerId, sellerId);
+            var skip = (page - 1) * pageSize;
+            return await _col.Find(filter).SortByDescending(x => x.CreatedAtUtc).Skip(skip).Limit(pageSize).ToListAsync(ct);
+        }
+
+        public async Task<long> CountBySellerIdAsync(string sellerId, CancellationToken ct)
+        {
+            if (string.IsNullOrWhiteSpace(sellerId)) return 0;
+            var filter = Builders<Product>.Filter.Eq(x => x.SellerId, sellerId);
+            return await _col.CountDocumentsAsync(filter, cancellationToken: ct);
+        }
     }
 }

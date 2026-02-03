@@ -66,11 +66,12 @@ services:
       - keycloak
 
   # ---------- Frontend (Next.js Dev) ----------
+  # Cache .next fica em ./frontend/.next no host; apague essa pasta se mudanças não refletirem.
   frontend:
     image: node:20-alpine
     container_name: kitcerto-frontend-dev
     working_dir: /app
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install @next/swc-linux-x64-gnu --save-optional --no-audit || true && npm run dev"
     environment:
       - NEXT_PUBLIC_API_BASE_URL=/api
       - NEXT_PUBLIC_USE_MOCKS=false
@@ -79,8 +80,6 @@ services:
       - NEXT_PUBLIC_KEYCLOAK_CLIENT_ID=kitcerto-frontend
     volumes:
       - ./frontend:/app
-      - /app/node_modules
-      - /app/.next
     ports:
       - "3000:3000"
     depends_on:

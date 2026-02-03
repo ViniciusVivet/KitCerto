@@ -1,7 +1,9 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { listAllOrders } from "@/services/orders";
+import { listAllOrders, listSellerOrders } from "@/services/orders";
+import { getMySeller } from "@/services/sellers";
+import { useAuth } from "@/context/auth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -11,9 +13,18 @@ import { Button } from "@/components/ui/button";
 import { useMemo } from "react";
 
 export default function PedidosPage() {
+  const { isAdmin } = useAuth();
+  const { data: seller, isLoading: sellerLoading } = useQuery({
+    queryKey: ["sellers", "me"],
+    queryFn: getMySeller,
+  });
+  const isSeller = !!seller;
+  const canAccess = isAdmin() || isSeller;
+
   const { data: orders = [], isLoading } = useQuery({
-    queryKey: ["all-orders"],
-    queryFn: () => listAllOrders()
+    queryKey: isAdmin() ? ["all-orders"] : ["seller-orders"],
+    queryFn: () => (isAdmin() ? listAllOrders() : listSellerOrders()),
+    enabled: canAccess,
   });
 
   const totalRevenue = useMemo(() => orders.reduce((acc, o) => acc + o.totalAmount, 0), [orders]);
@@ -22,18 +33,34 @@ export default function PedidosPage() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "pending_payment": return <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">Aguardando Pagamento</Badge>;
-      case "paid": return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Pago</Badge>;
+      case "paid":
+      case "approved": return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">Pago</Badge>;
       case "cancelled": return <Badge variant="destructive">Cancelado</Badge>;
       default: return <Badge variant="secondary">{status}</Badge>;
     }
   };
 
+  const accessDenied = !sellerLoading && !canAccess;
+
+  if (accessDenied) {
+    return (
+      <ProtectedRoute>
+        <Card className="m-6 p-6">
+          <h2 className="text-xl font-semibold">Acesso negado</h2>
+          <p className="text-muted-foreground mt-2">Esta área é apenas para administradores ou lojas credenciadas.</p>
+        </Card>
+      </ProtectedRoute>
+    );
+  }
+
   return (
-    <ProtectedRoute requiredRole="admin">
-      <section className="space-y-6">
+    <ProtectedRoute>
+      <section className="space-y-6 px-4 py-6 sm:px-5 lg:px-7">
         <div className="flex flex-col gap-2">
-          <h1 className="text-2xl font-semibold">Gestão de Pedidos</h1>
-          <p className="text-sm text-muted-foreground">Visualize e gerencie todas as vendas da plataforma.</p>
+          <h1 className="text-2xl font-semibold">{isAdmin() ? "Gestão de Pedidos" : "Pedidos"}</h1>
+          <p className="text-sm text-muted-foreground">
+            {isAdmin() ? "Visualize e gerencie todas as vendas da plataforma." : "Pedidos que contêm produtos da sua loja."}
+          </p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">

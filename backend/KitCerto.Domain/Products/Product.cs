@@ -18,6 +18,8 @@ namespace KitCerto.Domain.Products
 
         [BsonElement("CategoryId")] public string CategoryId { get; private set; } = string.Empty;
 
+        [BsonElement("SellerId")] public string? SellerId { get; set; }
+
         [BsonElement("Quantity")] public int Quantity { get; private set; }
 
         [BsonElement("Stock")] public int Stock { get; private set; }

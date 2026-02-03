@@ -15,6 +15,13 @@ namespace KitCerto.Application.Products.Update
 
         public async Task Handle(UpdateProductCmd req, CancellationToken ct)
         {
+            if (!string.IsNullOrWhiteSpace(req.SellerIdForAuth))
+            {
+                var product = await _repo.GetByIdAsync(req.Id, ct);
+                if (product is null) throw new InvalidOperationException("Produto não encontrado.");
+                if (product.SellerId != req.SellerIdForAuth)
+                    throw new UnauthorizedAccessException("Produto não pertence à sua loja.");
+            }
             var media = (req.Media ?? new List<UpdateProductMedia>())
                 .Select(m => new ProductMedia(m.Url, m.Type))
                 .ToList();

@@ -92,6 +92,46 @@ export async function apiPost<T>(path: string, body: unknown, init?: RequestInit
   }
 }
 
+export async function apiPatch<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
+  if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
+  const normalizedPath = normalizeApiPath(path);
+
+  try {
+    const res = await fetch(`${apiBaseUrl}${normalizedPath}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: getToken() ? `Bearer ${getToken()}` : undefined } as any,
+      body: JSON.stringify(body ?? {}),
+      ...init,
+    });
+
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      if (res.status === 401) {
+        console.warn("Token inválido/ausente. Iniciando fluxo de login…");
+        if (typeof window !== "undefined") {
+          try {
+            const { login } = await import("@/lib/keycloak");
+            login();
+          } catch {
+            window.location.href = "/";
+          }
+        }
+      }
+      throw new Error(text || `HTTP ${res.status}: ${res.statusText}`);
+    }
+
+    if (res.status === 204) return undefined as unknown as T;
+    try {
+      return await res.json();
+    } catch {
+      return undefined as unknown as T;
+    }
+  } catch (error) {
+    console.error(`Erro na requisição PATCH ${normalizedPath}:`, error);
+    throw error;
+  }
+}
+
 export async function apiPut<T>(path: string, body: unknown, init?: RequestInit): Promise<T> {
   if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
   const normalizedPath = normalizeApiPath(path);

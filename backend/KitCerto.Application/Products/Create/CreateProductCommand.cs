@@ -10,7 +10,8 @@ public sealed record CreateProductCmd(
     string CategoryId,
     int Quantity,
     int Stock,
-    IReadOnlyList<CreateProductMedia>? Media
+    IReadOnlyList<CreateProductMedia>? Media,
+    string? SellerId = null
 ) : IRequest<string>;
 
 public sealed record CreateProductMedia(string Url, string Type);

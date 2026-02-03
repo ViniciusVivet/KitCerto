@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
+using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
+using KitCerto.Domain.Repositories;
 
 using KitCerto.Application.Products.Queries.SearchProducts;
 using KitCerto.Application.Products.Create;
@@ -22,7 +24,16 @@ namespace KitCerto.API.Controllers
     public sealed class ProductsController : ControllerBase
     {
         private readonly IMediator _mediator;
-        public ProductsController(IMediator mediator) => _mediator = mediator;
+        private readonly ISellersRepo _sellersRepo;
+
+        public ProductsController(IMediator mediator, ISellersRepo sellersRepo)
+        {
+            _mediator = mediator;
+            _sellersRepo = sellersRepo;
+        }
+
+        private string? GetUserId()
+            => User?.FindFirst("sub")?.Value ?? User?.FindFirst("preferred_username")?.Value ?? User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
         /// <summary>Criar um produto</summary>
         [Authorize(Roles = "admin")]
@@ -78,38 +89,68 @@ namespace KitCerto.API.Controllers
             });
         }
 
-        /// <summary>Atualizar um produto</summary>
-        [Authorize(Roles = "admin")]
+        /// <summary>Atualizar um produto (admin ou dono do produto se seller).</summary>
+        [Authorize]
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update([FromRoute] string id, [FromBody] UpdateProductCmd cmd, CancellationToken ct)
         {
+            var userId = GetUserId();
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+            var seller = await _sellersRepo.GetByUserIdAsync(userId, ct);
             cmd.Id = id;
-            await _mediator.Send(cmd, ct);
-            return NoContent();
+            cmd.SellerIdForAuth = User.IsInRole("admin") ? null : seller?.Id;
+            if (!User.IsInRole("admin") && seller is null) return StatusCode(403, new { message = "Acesso negado." });
+            try
+            {
+                await _mediator.Send(cmd, ct);
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException) { return StatusCode(403, new { message = "Produto não pertence à sua loja." }); }
         }
 
-        /// <summary>Excluir um produto</summary>
-        [Authorize(Roles = "admin")]
+        /// <summary>Excluir um produto (admin ou dono do produto se seller).</summary>
+        [Authorize]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> Delete([FromRoute] string id, CancellationToken ct)
         {
-            await _mediator.Send(new DeleteProductCmd(id), ct);
-            return NoContent();
+            var userId = GetUserId();
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+            var seller = await _sellersRepo.GetByUserIdAsync(userId, ct);
+            var sellerIdForAuth = User.IsInRole("admin") ? null : seller?.Id;
+            if (!User.IsInRole("admin") && seller is null) return StatusCode(403, new { message = "Acesso negado." });
+            try
+            {
+                await _mediator.Send(new DeleteProductCmd(id, sellerIdForAuth), ct);
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException) { return StatusCode(403, new { message = "Produto não pertence à sua loja." }); }
         }
 
-        /// <summary>Atualizar apenas o estoque</summary>
-        [Authorize(Roles = "admin")]
+        /// <summary>Atualizar apenas o estoque (admin ou dono do produto se seller).</summary>
+        [Authorize]
         [HttpPatch("{id}/stock")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> UpdateStock([FromRoute] string id, [FromBody] UpdateProductStockCmd body, CancellationToken ct)
         {
-            var cmd = body with { Id = id };
-            await _mediator.Send(cmd, ct);
-            return NoContent();
+            var userId = GetUserId();
+            if (string.IsNullOrWhiteSpace(userId)) return Unauthorized();
+            var seller = await _sellersRepo.GetByUserIdAsync(userId, ct);
+            var sellerIdForAuth = User.IsInRole("admin") ? null : seller?.Id;
+            if (!User.IsInRole("admin") && seller is null) return StatusCode(403, new { message = "Acesso negado." });
+            try
+            {
+                var cmd = body with { Id = id, SellerIdForAuth = sellerIdForAuth };
+                await _mediator.Send(cmd, ct);
+                return NoContent();
+            }
+            catch (UnauthorizedAccessException) { return StatusCode(403, new { message = "Produto não pertence à sua loja." }); }
         }
 
         /// <summary>Listar produtos com estoque abaixo do limite</summary>

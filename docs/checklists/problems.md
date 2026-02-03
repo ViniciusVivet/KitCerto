@@ -1,5 +1,7 @@
 # 🔧 Checklist de Problemas - KitCerto
 
+> Para descrição detalhada de cada item (arquivo, solução sugerida), veja [Problemas conhecidos (detalhado)](known-issues.md).
+
 ## 🚨 PROBLEMAS CRÍTICOS (Prioridade ALTA)
 
 ### 🔐 Segurança

@@ -122,11 +122,7 @@ docker compose -f docker-compose.dev.yml exec mongo mongosh kitcerto
 - Melhor tratamento de tokens expirados no Keycloak
 - Logs de erro mais detalhados
 
-⚠️ **Ainda pendente**:
-- Otimização de performance do dashboard
-- Implementação de cache
-- Error boundaries no frontend
-- Logs estruturados
+⚠️ **Lista atual de pendências:** ver [docs/checklists/problems.md](../checklists/problems.md).
 
 ## 🎯 Próximos Passos
 

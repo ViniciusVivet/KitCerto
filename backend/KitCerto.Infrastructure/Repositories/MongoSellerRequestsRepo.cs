@@ -23,6 +23,12 @@ namespace KitCerto.Infrastructure.Repositories
             return req.Id;
         }
 
+        public async Task<SellerRequest?> GetByIdAsync(string id, CancellationToken ct)
+        {
+            var filter = Builders<SellerRequest>.Filter.Eq(x => x.Id, id);
+            return await _col.Find(filter).FirstOrDefaultAsync(ct);
+        }
+
         public async Task<IReadOnlyList<SellerRequest>> ListAsync(string? status, string? userId, CancellationToken ct)
         {
             var filter = Builders<SellerRequest>.Filter.Empty;

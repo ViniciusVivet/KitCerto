@@ -40,12 +40,28 @@ namespace KitCerto.Infrastructure.Repositories
             return await _col.Find(FilterDefinition<Order>.Empty).SortByDescending(x => x.CreatedAtUtc).ToListAsync(ct);
         }
 
+        public async Task<IReadOnlyList<Order>> ListWhereItemsContainProductIdsAsync(IReadOnlyList<string> productIds, CancellationToken ct)
+        {
+            if (productIds == null || productIds.Count == 0) return new List<Order>();
+            var filter = Builders<Order>.Filter.ElemMatch(x => x.Items, Builders<OrderItem>.Filter.In(i => i.ProductId, productIds));
+            return await _col.Find(filter).SortByDescending(x => x.CreatedAtUtc).ToListAsync(ct);
+        }
+
         public async Task UpdatePaymentAsync(string id, string provider, string preferenceId, CancellationToken ct)
         {
             var filter = Builders<Order>.Filter.Eq(x => x.Id, id);
             var update = Builders<Order>.Update
                 .Set(x => x.PaymentProvider, provider)
                 .Set(x => x.PaymentPreferenceId, preferenceId)
+                .Set(x => x.UpdatedAtUtc, System.DateTime.UtcNow);
+            await _col.UpdateOneAsync(filter, update, cancellationToken: ct);
+        }
+
+        public async Task UpdateStatusAsync(string id, string status, CancellationToken ct)
+        {
+            var filter = Builders<Order>.Filter.Eq(x => x.Id, id);
+            var update = Builders<Order>.Update
+                .Set(x => x.Status, status)
                 .Set(x => x.UpdatedAtUtc, System.DateTime.UtcNow);
             await _col.UpdateOneAsync(filter, update, cancellationToken: ct);
         }

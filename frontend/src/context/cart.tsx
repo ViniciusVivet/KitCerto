@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useReducer, ReactNode } from "react";
 
-type CartItem = { id: string; name: string; price: number; qty: number };
+export type CartItem = { id: string; name: string; price: number; qty: number; imageUrl?: string };
 type CartState = { items: CartItem[] };
 type Action =
   | { type: "add"; item: CartItem }
@@ -16,7 +16,13 @@ function reducer(state: CartState, action: Action): CartState {
     case "add": {
       const found = state.items.find((i) => i.id === action.item.id);
       if (found) {
-        return { items: state.items.map((i) => (i.id === action.item.id ? { ...i, qty: i.qty + action.item.qty } : i)) };
+        return {
+          items: state.items.map((i) =>
+            i.id === action.item.id
+              ? { ...i, qty: i.qty + action.item.qty, imageUrl: action.item.imageUrl ?? i.imageUrl }
+              : i
+          ),
+        };
       }
       return { items: [...state.items, action.item] };
     }

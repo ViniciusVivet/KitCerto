@@ -32,6 +32,7 @@ namespace KitCerto.API.Controllers
         {
             public required CreateOrderItem[] Items { get; init; }
             public CreateOrderShipping? Shipping { get; init; }
+            public string? CouponCode { get; init; }
         }
 
         [Authorize]
@@ -53,14 +54,18 @@ namespace KitCerto.API.Controllers
             if (string.IsNullOrWhiteSpace(successUrl) || string.IsNullOrWhiteSpace(failureUrl) || string.IsNullOrWhiteSpace(pendingUrl))
                 return BadRequest(new { message = "URLs de retorno não configuradas." });
 
+            var payerEmail = User?.FindFirst("email")?.Value ?? User?.FindFirst("preferred_username")?.Value;
+
             var result = await _mediator.Send(new CreateOrderCheckoutCmd(
                 UserId: userId,
+                PayerEmail: payerEmail,
                 Items: req.Items,
                 Shipping: req.Shipping,
                 Currency: "BRL",
                 SuccessUrl: successUrl,
                 FailureUrl: failureUrl,
-                PendingUrl: pendingUrl
+                PendingUrl: pendingUrl,
+                CouponCode: string.IsNullOrWhiteSpace(req.CouponCode) ? null : req.CouponCode.Trim()
             ), ct);
 
             if (!result.Success)

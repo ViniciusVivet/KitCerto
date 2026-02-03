@@ -101,6 +101,21 @@ export async function createProduct(payload: any) {
   return apiPost<any>(`/products`, payload);
 }
 
+/** Lista produtos da loja do vendedor (GET /sellers/me/products). */
+export async function listSellerProducts(params: { page?: number; pageSize?: number } = {}): Promise<ProductList> {
+  const q = new URLSearchParams();
+  if (params.page) q.set("page", String(params.page));
+  if (params.pageSize) q.set("pageSize", String(params.pageSize));
+  const data = await apiGet<any>(`/sellers/me/products?${q.toString()}`);
+  const items = Array.isArray(data?.items) ? data.items : [];
+  return { items, total: data?.total ?? items.length, page: data?.page ?? 1, pageSize: data?.pageSize ?? 20 };
+}
+
+/** Cria produto vinculado à loja do vendedor (POST /sellers/me/products). */
+export async function createSellerProduct(payload: any): Promise<{ id: string }> {
+  return apiPost<{ id: string }>(`/sellers/me/products`, payload);
+}
+
 export async function updateProduct(id: string, payload: any) {
   const forced = getForcedDataSource();
   if (forced === "mock") {

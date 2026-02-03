@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { ShoppingCart, UserRound, Search, Package, LayoutDashboard } from "lucide-react";
 import { useCart } from "@/context/cart";
-import { useToast } from "@/context/toast";
 import { useAuth } from "@/context/auth";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -21,7 +20,6 @@ import { LoginButton } from "@/components/auth/LoginButton";
 export function Header() {
   const [open, setOpen] = useState(false);
   const { state } = useCart();
-  const { notify } = useToast();
   const { isAdmin } = useAuth();
 
   return (
@@ -83,7 +81,7 @@ export function Header() {
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="default" size="icon" aria-label="Abrir carrinho" onClick={() => { if (state.items.length === 0) notify({ title: "Carrinho vazio", description: "Adicione produtos para continuar" }); }}>
+              <Button variant="default" size="icon" aria-label="Abrir carrinho">
                 <div className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   {state.items.length > 0 && (
@@ -128,16 +126,23 @@ function CartContents({ onClose }: { onClose: () => void }) {
     <div className="mt-4 space-y-4">
       <ul className="space-y-2">
         {state.items.map((i) => (
-          <li key={i.id} className="flex items-center justify-between gap-2 rounded-md border p-3">
-            <div>
-              <div className="font-medium">{i.name}</div>
-              <div className="text-sm text-muted-foreground">{i.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
+          <li key={i.id} className="flex items-center gap-3 rounded-md border p-3">
+            {i.imageUrl ? (
+              <Link href={`/produto/${i.id}`} onClick={onClose} className="shrink-0 size-12 rounded overflow-hidden bg-muted">
+                <img src={i.imageUrl} alt="" className="size-full object-cover" />
+              </Link>
+            ) : (
+              <Link href={`/produto/${i.id}`} onClick={onClose} className="shrink-0 size-12 rounded bg-muted flex items-center justify-center text-muted-foreground text-xs">img</Link>
+            )}
+            <div className="min-w-0 flex-1">
+              <Link href={`/produto/${i.id}`} onClick={onClose} className="font-medium text-sm hover:underline line-clamp-2">{i.name}</Link>
+              <div className="text-xs text-muted-foreground">{i.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
             </div>
-            <div className="flex items-center gap-2">
-              <Button size="icon" variant="secondary" onClick={() => dispatch({ type: "dec", id: i.id })}>-</Button>
-              <span className="w-6 text-center">{i.qty}</span>
-              <Button size="icon" variant="secondary" onClick={() => dispatch({ type: "inc", id: i.id })}>+</Button>
-              <Button size="icon" variant="destructive" onClick={() => dispatch({ type: "remove", id: i.id })}>x</Button>
+            <div className="flex items-center gap-1 shrink-0">
+              <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => dispatch({ type: "dec", id: i.id })}>-</Button>
+              <span className="w-6 text-center text-sm">{i.qty}</span>
+              <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => dispatch({ type: "inc", id: i.id })}>+</Button>
+              <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => dispatch({ type: "remove", id: i.id })}>x</Button>
             </div>
           </li>
         ))}
@@ -146,7 +151,7 @@ function CartContents({ onClose }: { onClose: () => void }) {
         <span className="text-sm text-muted-foreground">Subtotal</span>
         <span className="font-semibold">{subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
       </div>
-      <Button className="w-full" onClick={onClose}>Finalizar compra</Button>
+      <Button variant="secondary" className="w-full" onClick={onClose}>Continuar comprando</Button>
     </div>
   );
 }

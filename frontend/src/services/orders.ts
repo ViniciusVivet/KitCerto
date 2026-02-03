@@ -31,9 +31,15 @@ export async function listAllOrders(): Promise<Order[]> {
   return apiGet<Order[]>(`/orders/all`);
 }
 
+/** Pedidos que contêm produtos da loja do vendedor (GET /sellers/me/orders). */
+export async function listSellerOrders(): Promise<Order[]> {
+  return apiGet<Order[]>(`/sellers/me/orders`);
+}
+
 export async function createOrderCheckout(payload: {
   items: { productId: string; quantity: number }[];
   shipping?: OrderShipping;
+  couponCode?: string | null;
 }): Promise<{ orderId: string; totalAmount: number; currency: string; checkoutUrl: string }> {
   return apiPost(`/orders/checkout`, payload);
 }

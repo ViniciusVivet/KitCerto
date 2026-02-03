@@ -29,6 +29,8 @@ public sealed class CreateProductHandler : IRequestHandler<CreateProductCmd, str
         var id = $"p-{Guid.NewGuid():N}";
         typeof(Product).GetProperty(nameof(Product.Id), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)!
             .SetValue(product, id);
+        if (!string.IsNullOrWhiteSpace(req.SellerId))
+            product.SellerId = req.SellerId;
         await _repo.CreateAsync(product, ct);
         return id;
     }

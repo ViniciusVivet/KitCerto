@@ -9,7 +9,19 @@
 - Docker Compose: **API, Keycloak, Mongo** (opcional: **Mongo Express**)
 - Frontend: **Next.js 14** · **TypeScript** · **Tailwind 3** · **shadcn/ui** · **TanStack Query** · **Chart.js** · **API Integration**
 
-> Status: **EM DESENVOLVIMENTO** - Sistema e-commerce com Backend (.NET 9 + MongoDB + Keycloak), Frontend (Next.js 14 + TypeScript + Tailwind), Infra (Docker Compose). Autenticação Keycloak implementada, CRUD básico funcionando, Dashboard em desenvolvimento. **Veja a [CHECKLIST_PROBLEMAS.md](./CHECKLIST_PROBLEMAS.md) para status detalhado.**
+> Status: **EM DESENVOLVIMENTO** - Sistema e-commerce com Backend (.NET 9 + MongoDB + Keycloak), Frontend (Next.js 14 + TypeScript + Tailwind), Infra (Docker Compose). Autenticação Keycloak implementada, CRUD básico funcionando, Dashboard em desenvolvimento. **Veja a [documentação](docs/README.md) e o [checklist de problemas](docs/checklists/problems.md) para status detalhado.**
+
+---
+
+## 📚 Documentação
+
+Toda a documentação do projeto está em **[docs/](docs/README.md)**:
+
+- **Começando:** [Guia de desenvolvimento](docs/getting-started/dev-guide.md)
+- **Docker:** [Comandos](docs/docker/commands.md), [Cache e debug](docs/docker/cache-dev.md), [Debug](docs/docker/debug.md)
+- **Checklists:** [Problemas](docs/checklists/problems.md), [Evolução para produção](docs/checklists/production-evolution.md)
+- **Produção:** [O que falta](docs/production/whats-missing.md)
+- **Funcionalidades:** Carrinho, pagamentos, área do cliente, suporte, dashboard vendedor — em [docs/features/](docs/features/)
 
 ---
 
@@ -183,8 +195,8 @@ Swagger: **/swagger**
 - ✅ Docker Compose: frontend integrado e funcionando
 - ✅ Frontend: integração Keycloak (login/logout, guards) implementada
 - ✅ Nginx: reverse proxy ativo (`/api` → API, `/` → Front)
-- ⚠️ **Problemas identificados**: Veja [CHECKLIST_PROBLEMAS.md](./CHECKLIST_PROBLEMAS.md) para lista completa
-- 🔧 **Próximos passos**: Corrigir problemas de segurança, performance e configuração
+- ⚠️ **Problemas identificados**: Veja [docs/checklists/problems.md](docs/checklists/problems.md) para lista completa
+- 🔧 **Próximos passos**: Corrigir problemas de segurança, performance e configuração. Documentação em [docs/](docs/README.md).
 
 ---
 

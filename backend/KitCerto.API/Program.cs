@@ -28,7 +28,12 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Controllers + Swagger
 builder.Services.AddControllers()
-    .AddApplicationPart(typeof(Program).Assembly);
+    .AddApplicationPart(typeof(Program).Assembly)
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuthAndProblemDetails(builder.Configuration);
 
@@ -231,10 +236,7 @@ builder.Services.AddAuthorization();
 builder.Services.AddMediatR(cfg =>
 {
     cfg.RegisterServicesFromAssembly(typeof(Program).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(ListProductsHandler).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(ListCategoriesHandler).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(CreateProductCmd).Assembly);
-    cfg.RegisterServicesFromAssembly(typeof(DashboardOverviewQuery).Assembly);
+    cfg.RegisterServicesFromAssembly(typeof(KitCerto.Application.Products.Create.CreateProductCmd).Assembly);
 });
 
 // Infra (Mongo + Repositórios)

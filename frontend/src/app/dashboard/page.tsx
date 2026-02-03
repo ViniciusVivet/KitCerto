@@ -2,28 +2,42 @@
 
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
+import Link from "next/link";
 import { getDashboardOverviewWithMeta } from "@/services/dashboard";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title } from "chart.js";
 import { Doughnut, Bar } from "react-chartjs-2";
-import { Package, AlertTriangle, CircleDollarSign } from "lucide-react";
+import { Package, AlertTriangle, CircleDollarSign, MessageCircle, Store } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { DashboardSidebar } from "@/components/layout/DashboardSidebar";
+import { useAuth } from "@/context/auth";
+import { getMySeller } from "@/services/sellers";
 import { listProducts } from "@/services/products";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, Title);
 
 export default function DashboardPage() {
-  const { data: meta, isLoading, error } = useQuery({ 
-    queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined], 
+  const { isAdmin } = useAuth();
+  const { data: seller, isLoading: sellerLoading } = useQuery({
+    queryKey: ["sellers", "me"],
+    queryFn: getMySeller,
+  });
+  const isSeller = !!seller;
+  const isAdminUser = isAdmin();
+  const canAccess = isAdminUser || isSeller;
+
+  const { data: meta, isLoading, error } = useQuery({
+    queryKey: ["dash", typeof window !== 'undefined' ? new URL(window.location.href).searchParams.get('data') : undefined],
     queryFn: () => getDashboardOverviewWithMeta(true),
-    retry: false 
+    retry: false,
+    enabled: isAdminUser,
   });
 
   const { data: productsMeta } = useQuery({
     queryKey: ["prod-list-dash"],
-    queryFn: () => listProducts({ pageSize: 1000 }, true)
+    queryFn: () => listProducts({ pageSize: 1000 }, true),
+    enabled: isAdminUser,
   });
 
   const data = meta?.data;
@@ -98,17 +112,64 @@ export default function DashboardPage() {
     ],
   };
 
+  const accessDenied = !sellerLoading && !canAccess;
+  const showSellerWelcome = !sellerLoading && isSeller && !isAdminUser;
+
   return (
     <ProtectedRoute
-      requiredRole="admin"
       unauthTitle="Área restrita"
-      unauthMessage="Área para gerenciamento de produtos. Faça login para continuar."
-      unauthzTitle="Área de gerenciamento de loja"
-      unauthzMessage="Somente para vendedores credenciados (contas com permissão de administrador)."
+      unauthMessage="Área para gerenciamento. Faça login para continuar."
     >
-      <div className="flex">
-        <DashboardSidebar />
-        <div className="mx-auto max-w-[92rem] flex-1 px-4 py-6 sm:px-5 lg:px-7 space-y-8">
+      {sellerLoading && (
+        <div className="flex items-center justify-center min-h-[200px]">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        </div>
+      )}
+
+      {accessDenied && (
+        <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
+          <Card>
+            <CardHeader>
+              <h2 className="text-2xl font-bold">Acesso negado</h2>
+              <p className="text-muted-foreground">
+                Esta área é apenas para administradores da plataforma ou para lojas (vendedores) credenciadas.
+              </p>
+            </CardHeader>
+          </Card>
+        </div>
+      )}
+
+      {showSellerWelcome && (
+        <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-6">
+          <section className="rounded-xl border bg-gradient-to-r from-primary/10 via-accent/10 to-transparent p-6">
+            <div className="flex items-center gap-3">
+              <Store className="h-8 w-8 text-primary" />
+              <div>
+                <h1 className="text-2xl font-semibold">Minha loja</h1>
+                <p className="text-sm text-muted-foreground">{seller?.storeName}</p>
+              </div>
+            </div>
+          </section>
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">Chamados</CardTitle>
+              <CardDescription>
+                Veja e responda aos chamados dos clientes relacionados à sua loja.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild className="gap-2">
+                <Link href="/dashboard/chamados">
+                  <MessageCircle className="h-4 w-4" /> Ir para chamados
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {!sellerLoading && isAdminUser && (
+      <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7 space-y-8">
       {/* Hero */}
       <section className="rounded-xl border bg-gradient-to-r from-primary/10 via-accent/10 to-transparent p-6">
         <div className="flex items-center justify-between">
@@ -255,7 +316,7 @@ export default function DashboardPage() {
         </Card>
       </section>
       </div>
-      </div>
+      )}
     </ProtectedRoute>
   );
 }

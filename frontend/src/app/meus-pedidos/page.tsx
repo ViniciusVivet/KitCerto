@@ -6,80 +6,87 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
-import { Home, Package, Heart, MapPin, CreditCard, Ticket, User, LifeBuoy } from "lucide-react";
 import React from "react";
+import Link from "next/link";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useCart } from "@/context/cart";
 import { useToast } from "@/context/toast";
-import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { ShoppingBag } from "lucide-react";
 
-function StatusBadge({ s }: { s: Order["status"] }) {
-  const map: Record<Order["status"], string> = {
-    processing: "bg-yellow-500/20 text-yellow-400",
-    shipped: "bg-blue-500/20 text-blue-400",
-    delivered: "bg-emerald-500/20 text-emerald-400",
-    cancelled: "bg-red-500/20 text-red-400",
+function statusLabel(s: string): string {
+  const map: Record<string, string> = {
+    processing: "Processando",
+    shipped: "Enviado",
+    delivered: "Entregue",
+    cancelled: "Cancelado",
+    pending: "Aguardando pagamento",
+    approved: "Aprovado",
+    rejected: "Rejeitado",
+    refunded: "Reembolsado",
+    pending_payment: "Aguardando pagamento",
   };
-  return <span className={`rounded px-2 py-1 text-xs ${map[s]}`}>{s}</span>;
+  return map[s] ?? s;
+}
+
+function StatusBadge({ s }: { s: string }) {
+  const styleMap: Record<string, string> = {
+    processing: "bg-amber-500/20 text-amber-600 dark:text-amber-400",
+    shipped: "bg-blue-500/20 text-blue-600 dark:text-blue-400",
+    delivered: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+    cancelled: "bg-red-500/20 text-red-600 dark:text-red-400",
+    pending: "bg-slate-500/20 text-slate-600 dark:text-slate-400",
+    pending_payment: "bg-slate-500/20 text-slate-600 dark:text-slate-400",
+    approved: "bg-emerald-500/20 text-emerald-600 dark:text-emerald-400",
+    rejected: "bg-red-500/20 text-red-600 dark:text-red-400",
+    refunded: "bg-orange-500/20 text-orange-600 dark:text-orange-400",
+  };
+  const style = styleMap[s] ?? "bg-muted text-muted-foreground";
+  return <span className={`rounded px-2 py-1 text-xs font-medium ${style}`}>{statusLabel(s)}</span>;
 }
 
 export default function OrdersPage() {
   const [q, setQ] = React.useState("");
-  const [status, setStatus] = React.useState<Order["status"] | undefined>(undefined);
+  const [status, setStatus] = React.useState<string | undefined>(undefined);
   const [days, setDays] = React.useState<number | undefined>(180);
+
+  const statusFilters = [
+    { value: undefined, label: "Todos" },
+    { value: "pending", label: "Aguardando pagamento" },
+    { value: "approved", label: "Aprovado" },
+    { value: "processing", label: "Processando" },
+    { value: "shipped", label: "Enviado" },
+    { value: "delivered", label: "Entregue" },
+    { value: "cancelled", label: "Cancelado" },
+    { value: "rejected", label: "Rejeitado" },
+  ];
 
   const { data: orders, isLoading } = useQuery({ queryKey: ["orders"], queryFn: () => listOrders() });
   const { dispatch } = useCart();
   const { notify } = useToast();
 
+  const filteredOrders = (orders ?? [])
+    .filter((o) => (status ? o.status === status : true))
+    .filter((o) => (days ? (Date.now() - new Date(o.createdAtUtc).getTime()) <= days * 86400000 : true))
+    .filter((o) => (q ? (o.id.toLowerCase().includes(q.toLowerCase()) || o.items.some((it) => it.name?.toLowerCase().includes(q.toLowerCase()))) : true));
+
   return (
-    <ProtectedRoute unauthTitle="Entre para ver seus pedidos" unauthMessage="Faça login para consultar e acompanhar seus pedidos.">
-      <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
+    <>
       <section className="mb-6">
         <h1 className="text-2xl font-semibold">Meus pedidos</h1>
         <p className="text-sm text-muted-foreground">Acompanhe seus pedidos, favorite e repita compras.</p>
       </section>
 
-      <section className="grid grid-cols-1 gap-6 md:grid-cols-[240px_1fr]">
-        {/* Sidebar do comprador */}
-        <aside className="hidden md:block space-y-4 rounded-xl border p-3 sticky top-24 h-max">
-          <nav className="space-y-1">
-            <Link href="/" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><Home className="h-4 w-4" /> Visão geral</Button>
-            </Link>
-            <Link href="/meus-pedidos" className="block">
-              <Button variant="secondary" className="w-full justify-start gap-2"><Package className="h-4 w-4" /> Meus pedidos</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><Heart className="h-4 w-4" /> Favoritos</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><MapPin className="h-4 w-4" /> Endereços</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><CreditCard className="h-4 w-4" /> Pagamentos</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><Ticket className="h-4 w-4" /> Cupons</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><User className="h-4 w-4" /> Dados pessoais</Button>
-            </Link>
-            <Link href="#" className="block">
-              <Button variant="ghost" className="w-full justify-start gap-2"><LifeBuoy className="h-4 w-4" /> Suporte</Button>
-            </Link>
-          </nav>
-        </aside>
-
-        {/* Conteúdo principal */}
-        <div>
+      <div>
           <div className="mb-4 flex flex-wrap items-center gap-2">
             <Input placeholder="Buscar por código ou item…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-80" />
             <div className="flex flex-wrap items-center gap-2">
-              {[undefined, "processing", "shipped", "delivered", "cancelled"].map((s, idx) => (
-                <Badge key={idx} className={`${status === s ? "bg-primary text-primary-foreground" : "cursor-pointer"}`} onClick={() => setStatus(s as any)}>
-                  {s ?? "Todos"}
+              {statusFilters.map(({ value, label }) => (
+                <Badge
+                  key={value ?? "all"}
+                  className={`${status === value ? "bg-primary text-primary-foreground" : "cursor-pointer hover:bg-primary/80"}`}
+                  onClick={() => setStatus(value)}
+                >
+                  {label}
                 </Badge>
               ))}
             </div>
@@ -96,16 +103,25 @@ export default function OrdersPage() {
             ))}
             {!isLoading && (orders ?? []).length === 0 && (
               <Card className="p-6">
-                <div className="text-center text-muted-foreground">
-                  Você ainda não possui pedidos.
+                <div className="text-center space-y-3 text-muted-foreground">
+                  <p>Você ainda não possui pedidos.</p>
+                  <Button asChild>
+                    <Link href="/" className="inline-flex items-center gap-2">
+                      <ShoppingBag className="h-4 w-4" /> Fazer minha primeira compra
+                    </Link>
+                  </Button>
                 </div>
               </Card>
             )}
-            {!isLoading && (orders ?? [])
-              .filter((o) => (status ? o.status === status : true))
-              .filter((o) => (days ? (Date.now() - new Date(o.createdAtUtc).getTime()) <= days * 86400000 : true))
-              .filter((o) => (q ? (o.id.toLowerCase().includes(q.toLowerCase()) || o.items.some((it) => it.name.toLowerCase().includes(q.toLowerCase()))) : true))
-              .map((o) => (
+            {!isLoading && (orders ?? []).length > 0 && filteredOrders.length === 0 && (
+              <Card className="p-6">
+                <div className="text-center text-muted-foreground">
+                  <p>Nenhum pedido nesse período ou com esse filtro.</p>
+                  <p className="text-sm mt-1">Tente outro status, período ou termo de busca.</p>
+                </div>
+              </Card>
+            )}
+            {!isLoading && filteredOrders.map((o) => (
               <Card key={o.id} className="p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="space-y-1">
@@ -127,10 +143,8 @@ export default function OrdersPage() {
               </Card>
             ))}
           </div>
-        </div>
-      </section>
       </div>
-    </ProtectedRoute>
+    </>
   );
 }
 

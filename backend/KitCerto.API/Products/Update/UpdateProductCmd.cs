@@ -13,6 +13,8 @@ namespace KitCerto.Application.Products.Update
         public int Quantity { get; set; }
         public string CategoryId { get; set; } = string.Empty;
         public List<UpdateProductMedia>? Media { get; set; }
+        /// <summary>Se preenchido, apenas o vendedor dono do produto pode atualizar.</summary>
+        public string? SellerIdForAuth { get; set; }
     }
 
     public sealed record UpdateProductMedia(string Url, string Type);

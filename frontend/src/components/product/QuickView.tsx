@@ -199,7 +199,7 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
               size="lg"
               className="w-full h-14 rounded-2xl text-lg font-bold shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98] mt-8"
               onClick={() => {
-                dispatch({ type: "add", item: { id, name, price, qty } });
+                dispatch({ type: "add", item: { id, name, price, qty, imageUrl: mediaList[0]?.url } });
                 notify({ title: "Adicionado ao carrinho", description: `${name} (${size ?? "-"}/${color ?? "-"})`, variant: "success" });
                 setOpen(false);
               }}

@@ -5,9 +5,11 @@ using MongoDB.Driver;
 
 using KitCerto.Infrastructure.Data;           // MongoContext
 using KitCerto.Infrastructure.Repositories;  // Repos
-using KitCerto.Domain.Repositories;          // IProductsRepo, ICategoriesRepo
+using KitCerto.Domain.Repositories;          // IProductsRepo, IProfileRepo, IAddressRepo, IFavoritesRepo, ICouponsRepo, ISupportTicketsRepo, IPaymentMethodsRepo
 using KitCerto.Domain.Payments;
+using KitCerto.Domain.Support;               // INotifySellerService
 using KitCerto.Infrastructure.Payments;
+using KitCerto.Infrastructure.Support;      // LogNotifySellerService
 
 namespace KitCerto.Infrastructure.DependencyInjection
 {
@@ -29,7 +31,17 @@ namespace KitCerto.Infrastructure.DependencyInjection
             services.AddScoped<IProductsRepo, MongoProductsRepo>();
             services.AddScoped<ICategoriesRepo, MongoCategoriesRepo>();
             services.AddScoped<ISellerRequestsRepo, MongoSellerRequestsRepo>();
+            services.AddScoped<ISellersRepo, MongoSellersRepo>();
             services.AddScoped<IOrdersRepo, MongoOrdersRepo>();
+            services.AddScoped<ISettingsRepo, MongoSettingsRepo>();
+            services.AddScoped<IProfileRepo, MongoProfileRepo>();
+            services.AddScoped<IAddressRepo, MongoAddressRepo>();
+            services.AddScoped<IFavoritesRepo, MongoFavoritesRepo>();
+            services.AddScoped<ICouponsRepo, MongoCouponsRepo>();
+            services.AddScoped<ISupportTicketsRepo, MongoSupportTicketsRepo>();
+            services.AddScoped<ITicketMessagesRepo, MongoTicketMessagesRepo>();
+            services.AddScoped<IPaymentMethodsRepo, MongoPaymentMethodsRepo>();
+            services.AddScoped<INotifySellerService, LogNotifySellerService>();
 
             return services;
         }

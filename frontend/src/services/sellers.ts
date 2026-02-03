@@ -64,4 +64,15 @@ export async function rejectSellerRequest(id: string) {
   }
 }
 
+export type SellerMe = { id: string; storeName: string; email: string };
+
+export async function getMySeller(): Promise<SellerMe | null> {
+  if (shouldUseMocks()) return null;
+  try {
+    return await apiGet<SellerMe>(`/sellers/me`);
+  } catch {
+    return null;
+  }
+}
+
 

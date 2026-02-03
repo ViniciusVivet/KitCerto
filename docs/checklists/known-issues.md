@@ -1,6 +1,6 @@
 # 🚨 Problemas Conhecidos - KitCerto
 
-Este documento lista todos os problemas identificados no projeto KitCerto, organizados por prioridade e categoria.
+Este documento lista todos os problemas identificados no projeto KitCerto, organizados por prioridade e categoria. Para versão em checklist (checkboxes), use [Checklist de problemas](problems.md).
 
 ## 🔴 CRÍTICOS (Corrigir IMEDIATAMENTE)
 

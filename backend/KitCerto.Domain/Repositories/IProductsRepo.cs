@@ -28,6 +28,11 @@ namespace KitCerto.Domain.Repositories
         Task<IReadOnlyList<Product>> TopProductsByValueAsync(int limit, CancellationToken ct);
         Task<IReadOnlyList<PriceBucket>> PriceBucketsAsync(CancellationToken ct);
         Task<IReadOnlyList<Product>> LowStockItemsAsync(int threshold, CancellationToken ct);
+
+        /// <summary>Lista produtos de um vendedor (SellerId).</summary>
+        Task<IReadOnlyList<Product>> ListBySellerIdAsync(string sellerId, int page, int pageSize, CancellationToken ct);
+        /// <summary>Conta produtos de um vendedor.</summary>
+        Task<long> CountBySellerIdAsync(string sellerId, CancellationToken ct);
     }
     
     public sealed class CategoryCount
