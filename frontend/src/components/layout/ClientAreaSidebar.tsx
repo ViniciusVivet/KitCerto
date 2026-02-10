@@ -5,7 +5,14 @@ import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Home, Package, Heart, MapPin, CreditCard, Ticket, User, LifeBuoy } from "lucide-react";
 
-const ITEMS = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+};
+
+const ITEMS: NavItem[] = [
   { href: "/meus-pedidos/visao-geral", label: "Visão geral", icon: Home },
   { href: "/meus-pedidos", label: "Meus pedidos", icon: Package, exact: true },
   { href: "/meus-pedidos/favoritos", label: "Favoritos", icon: Heart },
@@ -14,7 +21,7 @@ const ITEMS = [
   { href: "/meus-pedidos/cupons", label: "Cupons", icon: Ticket },
   { href: "/meus-pedidos/dados-pessoais", label: "Dados pessoais", icon: User },
   { href: "/meus-pedidos/suporte", label: "Suporte", icon: LifeBuoy },
-] as const;
+];
 
 export function ClientAreaSidebar() {
   const pathname = usePathname();
