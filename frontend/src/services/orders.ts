@@ -21,6 +21,8 @@ export type Order = {
   createdAtUtc: string;
   items: OrderItem[];
   shipping?: OrderShipping | null;
+  /** Presente em listAllOrders (admin). */
+  userId?: string | null;
 };
 
 export async function listOrders(): Promise<Order[]> {
