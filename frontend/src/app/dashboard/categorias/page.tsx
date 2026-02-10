@@ -62,7 +62,7 @@ export default function CategoriasPage() {
 
   const emptyCategoriesCount = useMemo(() => {
     if (!categories.length) return 0;
-    return categories.filter((cat: { id?: string }) => !categoryCounts[cat.id]).length;
+    return categories.filter((cat: { id?: string }) => cat.id == null || !categoryCounts[cat.id]).length;
   }, [categories, categoryCounts]);
 
   // Mutations
