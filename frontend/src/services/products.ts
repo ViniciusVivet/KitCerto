@@ -1,5 +1,6 @@
 import { apiGet, apiPost, apiPut, apiDelete } from "@/lib/api";
-import { useMocks } from "@/lib/config";
+import { useMocks, apiBaseUrl } from "@/lib/config";
+import { getToken } from "@/lib/keycloak";
 import { mockSearchProducts, mockFetchCategories, mockCreateProduct, mockUpdateProduct, mockDeleteProduct } from "@/lib/mock";
 import { mockBestSellingProducts, mockLatestProducts } from "@/lib/mock";
 
@@ -142,6 +143,7 @@ export async function updateProductStock(id: string, stock: number) {
     return Promise.resolve(mockUpdateProduct(id, { stock }));
   }
   // Usamos PATCH para atualização parcial de estoque
+  if (!apiBaseUrl) throw new Error("API base URL não configurada (NEXT_PUBLIC_API_BASE_URL)");
   return fetch(`${apiBaseUrl}/products/${id}/stock`, {
     method: "PATCH",
     headers: { 

@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, Suspense } from "react";
 import { useToast } from "@/context/toast";
 import { Plus, X, GripVertical, Search, Package, Image as ImageIcon, Film, UploadCloud, Edit as EditIcon } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -22,7 +22,7 @@ type CombinedMedia = {
   isExisting: boolean;
 };
 
-export default function AdminProdutosPage() {
+function AdminProdutosPageContent() {
   const qc = useQueryClient();
   const searchParams = useSearchParams();
   const initialCategoryId = searchParams.get("categoryId") || "";
@@ -261,6 +261,14 @@ export default function AdminProdutosPage() {
         )}
       </section>
     </ProtectedRoute>
+  );
+}
+
+export default function AdminProdutosPage() {
+  return (
+    <Suspense fallback={<div className="p-8 space-y-4"><Skeleton className="h-12 w-48" /><Skeleton className="h-64 w-full" /></div>}>
+      <AdminProdutosPageContent />
+    </Suspense>
   );
 }
 

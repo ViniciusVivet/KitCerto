@@ -1,4 +1,4 @@
-export type Category = { id: string; name: string };
+export type Category = { id: string; name: string; description: string };
 export type Product = {
   id: string;
   name: string;
@@ -84,10 +84,10 @@ export async function mockRejectSellerRequest(id: string) {
 }
 
 export const categories: Category[] = [
-  { id: "cat-street", name: "Street" },
-  { id: "cat-joias", name: "Jóias" },
-  { id: "cat-semi", name: "Semi-jóias" },
-  { id: "cat-outfits", name: "Outfits" },
+  { id: "cat-street", name: "Street", description: "Estilo streetwear." },
+  { id: "cat-joias", name: "Jóias", description: "Jóias e acessórios." },
+  { id: "cat-semi", name: "Semi-jóias", description: "Semi-jóias." },
+  { id: "cat-outfits", name: "Outfits", description: "Looks completos." },
 ];
 
 const kinds = [
