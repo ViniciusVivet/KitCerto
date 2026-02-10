@@ -315,7 +315,7 @@ export default function MeusProdutosPage() {
         {editing && (
           <EditProductDialog
             open={!!editing}
-            onOpenChange={(v) => {
+            onOpenChange={(v: boolean) => {
               if (!v) { setEditing(null); setMediaItems([]); }
             }}
             product={editing}
