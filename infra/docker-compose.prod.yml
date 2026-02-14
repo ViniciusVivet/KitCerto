@@ -32,7 +32,7 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:24.0
-    command: ["start", "--http-port=8080", "--http-enabled=true", "--import-realm"]
+    command: ["start", "--http-port=8080", "--http-enabled=true", "--http-relative-path=/auth", "--import-realm"]
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-admin}
@@ -44,8 +44,9 @@ services:
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME_URL: ${KEYCLOAK_PUBLIC_URL:-http://auth.seudominio.com}
-      KC_HOSTNAME_ADMIN_URL: ${KEYCLOAK_PUBLIC_URL:-http://auth.seudominio.com}
+      KC_HTTP_RELATIVE_PATH: "/auth"
+      KC_HOSTNAME_URL: "http://3.15.32.160"
+      KC_HOSTNAME_ADMIN_URL: "http://3.15.32.160"
     volumes:
       - ./keycloak/realm-kitcerto.json:/opt/keycloak/data/import/realm-kitcerto.json:ro
     depends_on:
