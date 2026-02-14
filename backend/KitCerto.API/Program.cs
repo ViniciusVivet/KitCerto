@@ -37,8 +37,19 @@ builder.Services.AddControllers()
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGenWithAuthAndProblemDetails(builder.Configuration);
 
-// CORS (origens lidas do appsettings: Cors:Origins)
-var corsOrigins = builder.Configuration.GetSection("Cors:Origins").Get<string[]>() ?? Array.Empty<string>();
+// CORS (origens lidas do appsettings: Cors:Origins - array ou string separada por ; ou ,)
+var corsSection = builder.Configuration.GetSection("Cors:Origins");
+var corsOrigins = corsSection.Get<string[]>();
+if (corsOrigins is null || corsOrigins.Length == 0)
+{
+    var corsStr = builder.Configuration["Cors:Origins"];
+    corsOrigins = string.IsNullOrWhiteSpace(corsStr)
+        ? Array.Empty<string>()
+        : corsStr.Split(new[] { ';', ',' }, StringSplitOptions.RemoveEmptyEntries)
+                 .Select(s => s.Trim())
+                 .Where(s => s.Length > 0)
+                 .ToArray();
+}
 if (corsOrigins.Length == 0 && !builder.Environment.IsDevelopment())
 {
     throw new InvalidOperationException("Cors:Origins deve ser configurado fora de Development.");
