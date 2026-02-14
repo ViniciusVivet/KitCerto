@@ -67,7 +67,8 @@ services:
       ConnectionStrings__Mongo: "mongodb://mongo:27017/kitcerto"
       Auth__Authority: "${KEYCLOAK_PUBLIC_URL}/realms/kitcerto"
       Auth__Audience: "kitcerto-api"
-      Cors__Origins__0: "${FRONTEND_URL}"
+      Auth__RequireHttpsMetadata: "false"
+      Cors__Origins: "${FRONTEND_URL}"
       MercadoPago__AccessToken: ${MP_ACCESS_TOKEN:-}
       MercadoPago__Sandbox: ${MP_SANDBOX:-true}
       MercadoPago__SuccessUrl: ${MP_SUCCESS_URL}
@@ -91,7 +92,7 @@ services:
     ports:
       - "80:80"
     volumes:
-      - ./nginx/default.prod.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./nginx/default.simple.conf:/etc/nginx/conf.d/default.conf:ro
     depends_on:
       - api
       - keycloak
