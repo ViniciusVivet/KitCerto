@@ -67,7 +67,7 @@ services:
       ConnectionStrings__Mongo: "mongodb://mongo:27017/kitcerto"
       Auth__Authority: "${KEYCLOAK_PUBLIC_URL}/realms/kitcerto"
       Auth__Audience: "kitcerto-api"
-      Cors__Origins: "${FRONTEND_URL}"
+      Cors__Origins__0: "${FRONTEND_URL}"
       MercadoPago__AccessToken: ${MP_ACCESS_TOKEN:-}
       MercadoPago__Sandbox: ${MP_SANDBOX:-true}
       MercadoPago__SuccessUrl: ${MP_SUCCESS_URL}
