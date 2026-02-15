@@ -7,18 +7,6 @@
     {
       "source": "/auth/:path*",
       "destination": "http://3.15.32.160/auth/:path*"
-    },
-    {
-      "source": "/admin/:path*",
-      "destination": "http://3.15.32.160/auth/admin/:path*"
-    },
-    {
-      "source": "/realms/:path*",
-      "destination": "http://3.15.32.160/auth/realms/:path*"
-    },
-    {
-      "source": "/resources/:path*",
-      "destination": "http://3.15.32.160/auth/resources/:path*"
     }
   ]
 }

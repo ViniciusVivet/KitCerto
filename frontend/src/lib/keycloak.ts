@@ -32,20 +32,20 @@ export const initKeycloak = async () => {
 // Função para fazer login
 export const login = () => {
   keycloak.login({
-    redirectUri: window.location.origin,
+    redirectUri: `${window.location.origin}/`,
   });
 };
 
 export const register = () => {
   keycloak.register({
-    redirectUri: window.location.origin,
+    redirectUri: `${window.location.origin}/`,
   });
 };
 
 // Função para fazer logout
 export const logout = () => {
   keycloak.logout({
-    redirectUri: window.location.origin,
+    redirectUri: `${window.location.origin}/`,
   });
 };
 
