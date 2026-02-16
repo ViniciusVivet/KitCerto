@@ -1,21 +1,4 @@
 {
-  "redirects": [
-    {
-      "source": "/admin/:path*",
-      "destination": "/auth/admin/:path*",
-      "permanent": false
-    },
-    {
-      "source": "/realms/:path*",
-      "destination": "/auth/realms/:path*",
-      "permanent": false
-    },
-    {
-      "source": "/resources/:path*",
-      "destination": "/auth/resources/:path*",
-      "permanent": false
-    }
-  ],
   "rewrites": [
     {
       "source": "/api/:path*",
@@ -24,6 +7,18 @@
     {
       "source": "/auth/:path*",
       "destination": "http://3.15.32.160/auth/:path*"
+    },
+    {
+      "source": "/admin/:path*",
+      "destination": "http://3.15.32.160/auth/admin/:path*"
+    },
+    {
+      "source": "/realms/:path*",
+      "destination": "http://3.15.32.160/auth/realms/:path*"
+    },
+    {
+      "source": "/resources/:path*",
+      "destination": "http://3.15.32.160/auth/resources/:path*"
     }
   ]
 }
