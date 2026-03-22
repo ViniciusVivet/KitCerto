@@ -10,6 +10,7 @@ export type Product = {
   createdAt?: number;
   isPromo?: boolean;
   oldPrice?: number;
+  media?: { url: string; type: string }[];
 };
 
 export type OrderItem = {
@@ -54,7 +55,7 @@ export type SellerRequest = {
 let sellerRequests: SellerRequest[] = [];
 
 export async function mockCreateSellerRequest(req: Omit<SellerRequest, "id" | "status" | "createdAt">) {
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   const item: SellerRequest = {
     id: `SR-${Date.now()}`,
     status: "pending",
@@ -66,19 +67,19 @@ export async function mockCreateSellerRequest(req: Omit<SellerRequest, "id" | "s
 }
 
 export async function mockListSellerRequests(status?: SellerRequest["status"]) {
-  await new Promise((r) => setTimeout(r, 150));
+  await Promise.resolve();
   const list = status ? sellerRequests.filter((s) => s.status === status) : sellerRequests;
   return list;
 }
 
 export async function mockApproveSellerRequest(id: string) {
-  await new Promise((r) => setTimeout(r, 150));
+  await Promise.resolve();
   sellerRequests = sellerRequests.map((s) => (s.id === id ? { ...s, status: "approved", reviewedAt: Date.now() } : s));
   return { ok: true };
 }
 
 export async function mockRejectSellerRequest(id: string) {
-  await new Promise((r) => setTimeout(r, 150));
+  await Promise.resolve();
   sellerRequests = sellerRequests.map((s) => (s.id === id ? { ...s, status: "rejected", reviewedAt: Date.now() } : s));
   return { ok: true };
 }
@@ -102,6 +103,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-cravejados",
     sold: 87,
     createdAt: Date.now() - 30 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-2",
@@ -112,6 +114,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-correntes",
     sold: 134,
     createdAt: Date.now() - 60 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-3",
@@ -124,6 +127,7 @@ export const baseProducts: Product[] = [
     createdAt: Date.now() - 45 * 86400000,
     isPromo: true,
     oldPrice: 174.95,
+    media: [{ url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-4",
@@ -134,6 +138,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-correntes",
     sold: 156,
     createdAt: Date.now() - 90 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-5",
@@ -144,6 +149,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-brincos",
     sold: 98,
     createdAt: Date.now() - 15 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1506630448388-4e683c67ddb0?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-6",
@@ -154,6 +160,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-correntes",
     sold: 73,
     createdAt: Date.now() - 20 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1573408301185-9519f94ef58b?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-7",
@@ -164,6 +171,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-cravejados",
     sold: 45,
     createdAt: Date.now() - 10 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1576022162028-c4ba5d8db4a1?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-8",
@@ -176,6 +184,7 @@ export const baseProducts: Product[] = [
     createdAt: Date.now() - 25 * 86400000,
     isPromo: true,
     oldPrice: 314.95,
+    media: [{ url: "https://images.unsplash.com/photo-1434056886845-dac89ffe9b56?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
   {
     id: "p-9",
@@ -186,6 +195,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-relogios",
     sold: 119,
     createdAt: Date.now() - 50 * 86400000,
+    media: [{ url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&auto=format", type: "image" }],
   },
 ];
 
@@ -227,19 +237,19 @@ export async function mockFetchProducts(params?: { page?: number; pageSize?: num
   const pageSize = params?.pageSize ?? 20;
   const start = (page - 1) * pageSize;
   const items = mockProducts.slice(start, start + pageSize);
-  await new Promise((r) => setTimeout(r, 300));
+  await Promise.resolve();
   return { items, total: mockProducts.length, page, pageSize };
 }
 
 export async function mockSearchProducts(q?: string, categoryId?: string) {
   const byName = q ? mockProducts.filter((p) => p.name.toLowerCase().includes(q.toLowerCase())) : mockProducts;
   const byCat = categoryId ? byName.filter((p) => p.categoryId === categoryId) : byName;
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   return { items: byCat, total: byCat.length };
 }
 
 export async function mockFetchCategories() {
-  await new Promise((r) => setTimeout(r, 150));
+  await Promise.resolve();
   return categories;
 }
 
@@ -274,12 +284,12 @@ export async function mockDashboard() {
     label: b.label,
     count: baseProducts.filter((p) => p.price >= b.min && p.price <= (b.max === Infinity ? p.price : b.max)).length,
   }));
-  await new Promise((r) => setTimeout(r, 250));
+  await Promise.resolve();
   return { totalProducts, lowStock, totalValue, byCategory, byCategoryValue, lowStockItems, topProductsByValue, priceBuckets };
 }
 
 export async function mockBestSellers(limit = 5) {
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   return [...mockProducts]
     .map((p) => ({ id: p.id, name: p.name, sold: p.sold ?? 0 }))
     .sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
@@ -287,7 +297,7 @@ export async function mockBestSellers(limit = 5) {
 }
 
 export async function mockSearchSold(query?: string) {
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   const filtered = (query
     ? mockProducts.filter((p) => p.name.toLowerCase().includes(query.toLowerCase()))
     : mockProducts
@@ -298,14 +308,14 @@ export async function mockSearchSold(query?: string) {
 }
 
 export async function mockBestSellingProducts(limit = 10): Promise<Product[]> {
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   return [...mockProducts]
     .sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0))
     .slice(0, limit);
 }
 
 export async function mockLatestProducts(limit = 10): Promise<Product[]> {
-  await new Promise((r) => setTimeout(r, 200));
+  await Promise.resolve();
   return [...mockProducts]
     .sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0))
     .slice(0, limit);
@@ -346,7 +356,7 @@ function buildOrderFromProducts(seed: number): Order {
 const ordersData: Order[] = Array.from({ length: 12 }).map((_, i) => buildOrderFromProducts(i));
 
 export async function mockFetchOrders(params?: { status?: Order["status"]; q?: string; days?: number }) {
-  await new Promise((r) => setTimeout(r, 250));
+  await Promise.resolve();
   let list = [...ordersData];
   if (params?.status) list = list.filter((o) => o.status === params.status);
   if (params?.days) {
