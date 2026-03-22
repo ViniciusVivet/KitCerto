@@ -127,7 +127,7 @@ export const baseProducts: Product[] = [
     createdAt: Date.now() - 45 * 86400000,
     isPromo: true,
     oldPrice: 174.95,
-    media: [{ url: "https://images.unsplash.com/photo-1599643478518-a784e5dc4c8f?w=400&h=400&fit=crop&auto=format", type: "image" }],
+    media: [{ url: "https://static.wixstatic.com/media/81b41d_ec1818f426154457a793900a37956fb6~mv2.jpg/v1/fill/w_990,h_1036,al_c,q_85,usm_0.66_1.00_0.01/81b41d_ec1818f426154457a793900a37956fb6~mv2.jpg", type: "image" }],
   },
   {
     id: "p-4",
