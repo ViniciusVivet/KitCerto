@@ -33,9 +33,9 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
           trigger={
             cover ? (
               cover.type === "video" ? (
-                <div className="aspect-square w-full bg-black flex items-center justify-center cursor-pointer">
+                <div className="aspect-square w-full bg-black overflow-hidden cursor-pointer">
                   <video
-                    className="h-full w-full object-contain"
+                    className="h-full w-full object-cover"
                     src={cover.url}
                     muted
                     loop
@@ -44,12 +44,15 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
                   />
                 </div>
               ) : (
-                <div className="aspect-square w-full bg-black/5 flex items-center justify-center cursor-pointer">
-                  <img className="h-full w-full object-contain" src={cover.url} alt={name} />
+                <div className="aspect-square w-full bg-gradient-to-b from-zinc-900 to-black flex items-center justify-center cursor-pointer p-3 overflow-hidden">
+                  <img className="h-full w-full object-contain drop-shadow-2xl" src={cover.url} alt={name} />
                 </div>
               )
             ) : (
-              <div className="aspect-square w-full cursor-pointer bg-gradient-to-br from-primary/10 via-accent/10 to-primary/5" />
+              <div className="aspect-square w-full cursor-pointer bg-gradient-to-b from-zinc-900 to-black flex flex-col items-center justify-center gap-2 opacity-60">
+                <svg className="w-8 h-8 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                <span className="text-[10px] text-zinc-600 tracking-widest uppercase font-medium">Kit Certo</span>
+              </div>
             )
           }
         />
