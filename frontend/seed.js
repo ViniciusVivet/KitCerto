@@ -42,9 +42,15 @@ function D(x) { return NumberDecimal(x); }
 const now = new Date();
 
 const products = [
-  { _id:'p_ex_1', Name:'Camiseta Oversized Neon', Description:'Camiseta 100% algodão premium', Price:D('129.90'), CategoryId:'cat_camiseta', Quantity:0, Stock:50, CreatedAtUtc:now },
-  { _id:'p_ex_2', Name:'Corrente Cuban 12mm', Description:'Corrente cravejada banhada a ouro', Price:D('899.90'), CategoryId:'cat_corrente', Quantity:0, Stock:15, CreatedAtUtc:now },
-  { _id:'p_ex_3', Name:'Relógio Iced Out', Description:'Relógio cravejado automático', Price:D('1499.00'), CategoryId:'cat_relogio', Quantity:0, Stock:10, CreatedAtUtc:now }
+  { _id:'p_1', Name:'Relógio Esmeralda Clássic Cravejado', Description:'Relógio clássico cravejado com detalhes esmeralda. Banhado a ouro, caixa cravejada de strass e pulseira de aço inox.', Price:D('249.95'), CategoryId:'cat_relogio', Quantity:0, Stock:12, CreatedAtUtc:now },
+  { _id:'p_2', Name:'Corrente Spike', Description:'Corrente modelo Spike com pingentes pontiagudos. Acabamento banhado a ouro 18k, estilo street e hip-hop.', Price:D('124.95'), CategoryId:'cat_corrente', Quantity:0, Stock:20, CreatedAtUtc:now },
+  { _id:'p_3', Name:'Corrente Miami Dourada', Description:'Corrente Miami Cuban Link banhada a ouro 18k. Alta durabilidade e brilho intenso, ideal para o estilo street.', Price:D('149.95'), CategoryId:'cat_corrente', Quantity:0, Stock:18, CreatedAtUtc:now },
+  { _id:'p_4', Name:'Corrente Poças', Description:'Corrente modelo Poças com elos arredondados e acabamento espelhado. Banhada a ouro 18k.', Price:D('99.95'), CategoryId:'cat_corrente', Quantity:0, Stock:25, CreatedAtUtc:now },
+  { _id:'p_5', Name:'Brinco de Pérola', Description:'Brinco com pérola sintética de alta qualidade. Peça clássica e elegante, perfeita para qualquer ocasião.', Price:D('44.95'), CategoryId:'cat_brinco', Quantity:0, Stock:30, CreatedAtUtc:now },
+  { _id:'p_6', Name:'Corrente Ninepac Elegante', Description:'Corrente Ninepac com design elegante e acabamento premium. Banhada a prata 925, ideal para looks sofisticados.', Price:D('174.95'), CategoryId:'cat_corrente', Quantity:0, Stock:14, CreatedAtUtc:now },
+  { _id:'p_7', Name:'Corrente Miami Cravejada', Description:'Corrente Miami Cuban Link totalmente cravejada com strass. Banhada a ouro 18k, máximo brilho e estilo.', Price:D('199.95'), CategoryId:'cat_corrente', Quantity:0, Stock:10, CreatedAtUtc:now },
+  { _id:'p_8', Name:'Relógio Desert Clássic Cravejado', Description:'Relógio Desert com mostrador clássico e caixa cravejada. Pulseira de aço com acabamento champagne, estilo luxo.', Price:D('274.95'), CategoryId:'cat_relogio', Quantity:0, Stock:8, CreatedAtUtc:now },
+  { _id:'p_9', Name:'Relógio Clássic Cravejado Cyclop', Description:'Relógio clássico com lente Cyclop cravejada de strass. Design inspirado nos grandes clássicos, reinterpretado com brilho street.', Price:D('224.95'), CategoryId:'cat_relogio', Quantity:0, Stock:15, CreatedAtUtc:now }
 ];
 
 db.products.insertMany(products);

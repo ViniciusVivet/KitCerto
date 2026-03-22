@@ -84,38 +84,110 @@ export async function mockRejectSellerRequest(id: string) {
 }
 
 export const categories: Category[] = [
-  { id: "cat-street", name: "Street", description: "Estilo streetwear." },
-  { id: "cat-joias", name: "Jóias", description: "Jóias e acessórios." },
-  { id: "cat-semi", name: "Semi-jóias", description: "Semi-jóias." },
-  { id: "cat-outfits", name: "Outfits", description: "Looks completos." },
+  { id: "cat-correntes", name: "Correntes", description: "Correntes cravejadas e banhadas a ouro." },
+  { id: "cat-relogios", name: "Relógios", description: "Relógios premium cravejados." },
+  { id: "cat-brincos", name: "Brincos", description: "Brincos e acessórios." },
+  { id: "cat-pulseiras", name: "Pulseiras", description: "Pulseiras e braceletes." },
+  { id: "cat-colares", name: "Colares", description: "Colares e pingentes." },
+  { id: "cat-cravejados", name: "Cravejados", description: "Peças exclusivamente cravejadas." },
 ];
 
-const kinds = [
-  { label: "Corrente", price: 199.9 },
-  { label: "Relógio", price: 499.9 },
-  { label: "Pulseira", price: 129.9 },
-  { label: "Boné", price: 89.9 },
-  { label: "Calça", price: 229.9 },
-  { label: "Camiseta", price: 149.9 },
+export const baseProducts: Product[] = [
+  {
+    id: "p-1",
+    name: "Relógio Esmeralda Clássic Cravejado",
+    description: "Relógio clássico cravejado com detalhes esmeralda. Banhado a ouro, caixa cravejada de strass e pulseira de aço inox.",
+    price: 249.95,
+    stock: 12,
+    categoryId: "cat-cravejados",
+    sold: 87,
+    createdAt: Date.now() - 30 * 86400000,
+  },
+  {
+    id: "p-2",
+    name: "Corrente Spike",
+    description: "Corrente modelo Spike com pingentes pontiagudos. Acabamento banhado a ouro 18k, estilo street e hip-hop.",
+    price: 124.95,
+    stock: 20,
+    categoryId: "cat-correntes",
+    sold: 134,
+    createdAt: Date.now() - 60 * 86400000,
+  },
+  {
+    id: "p-3",
+    name: "Corrente Miami Dourada",
+    description: "Corrente Miami Cuban Link banhada a ouro 18k. Alta durabilidade e brilho intenso, ideal para o estilo street.",
+    price: 149.95,
+    stock: 18,
+    categoryId: "cat-correntes",
+    sold: 210,
+    createdAt: Date.now() - 45 * 86400000,
+    isPromo: true,
+    oldPrice: 174.95,
+  },
+  {
+    id: "p-4",
+    name: "Corrente Poças",
+    description: "Corrente modelo Poças com elos arredondados e acabamento espelhado. Banhada a ouro 18k.",
+    price: 99.95,
+    stock: 25,
+    categoryId: "cat-correntes",
+    sold: 156,
+    createdAt: Date.now() - 90 * 86400000,
+  },
+  {
+    id: "p-5",
+    name: "Brinco de Pérola",
+    description: "Brinco com pérola sintética de alta qualidade. Peça clássica e elegante, perfeita para qualquer ocasião.",
+    price: 44.95,
+    stock: 30,
+    categoryId: "cat-brincos",
+    sold: 98,
+    createdAt: Date.now() - 15 * 86400000,
+  },
+  {
+    id: "p-6",
+    name: "Corrente Ninepac Elegante",
+    description: "Corrente Ninepac com design elegante e acabamento premium. Banhada a prata 925, ideal para looks sofisticados.",
+    price: 174.95,
+    stock: 14,
+    categoryId: "cat-correntes",
+    sold: 73,
+    createdAt: Date.now() - 20 * 86400000,
+  },
+  {
+    id: "p-7",
+    name: "Corrente Miami Cravejada",
+    description: "Corrente Miami Cuban Link totalmente cravejada com strass. Banhada a ouro 18k, máximo brilho e estilo.",
+    price: 199.95,
+    stock: 10,
+    categoryId: "cat-cravejados",
+    sold: 45,
+    createdAt: Date.now() - 10 * 86400000,
+  },
+  {
+    id: "p-8",
+    name: "Relógio Desert Clássic Cravejado",
+    description: "Relógio Desert com mostrador clássico e caixa cravejada. Pulseira de aço com acabamento champagne, estilo luxo.",
+    price: 274.95,
+    stock: 8,
+    categoryId: "cat-cravejados",
+    sold: 62,
+    createdAt: Date.now() - 25 * 86400000,
+    isPromo: true,
+    oldPrice: 314.95,
+  },
+  {
+    id: "p-9",
+    name: "Relógio Clássic Cravejado Cyclop",
+    description: "Relógio clássico com lente Cyclop cravejada de strass. Design inspirado nos grandes clássicos, reinterpretado com brilho street.",
+    price: 224.95,
+    stock: 15,
+    categoryId: "cat-relogios",
+    sold: 119,
+    createdAt: Date.now() - 50 * 86400000,
+  },
 ];
-
-export const baseProducts: Product[] = Array.from({ length: 24 }).map((_, i) => {
-  const kind = kinds[i % kinds.length];
-  const isPromo = i % 5 === 0;
-  const oldPrice = isPromo ? Math.round(kind.price * 1.15 * 100) / 100 : undefined;
-  return {
-    id: `p-${i + 1}`,
-    name: `${kind.label} Neon KitCerto ${i + 1}`,
-    description: `${kind.label} com vibe streetwear e acabamento premium.`,
-    price: kind.price,
-    stock: 5 + (i % 12),
-    categoryId: categories[(i % categories.length)].id,
-    sold: 10 + ((i * 7) % 300),
-    createdAt: Date.now() - i * 86400000,
-    isPromo,
-    oldPrice,
-  };
-});
 
 // Estado mutável para operações de CRUD no modo mock
 let mockProducts: Product[] = [...baseProducts];
