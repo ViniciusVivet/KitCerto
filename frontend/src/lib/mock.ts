@@ -114,7 +114,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-correntes",
     sold: 134,
     createdAt: Date.now() - 60 * 86400000,
-    media: [{ url: "https://images.unsplash.com/photo-1611085583191-a3b181a88401?w=400&h=400&fit=crop&auto=format", type: "image" }],
+    media: [{ url: "https://static.wixstatic.com/media/81b41d_0cc847c766d44119869e2357ca0f8fe2~mv2.png/v1/fill/w_526,h_518,al_c,usm_0.66_1.00_0.01/81b41d_0cc847c766d44119869e2357ca0f8fe2~mv2.png", type: "image" }],
   },
   {
     id: "p-3",
