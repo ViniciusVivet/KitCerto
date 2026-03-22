@@ -103,7 +103,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-cravejados",
     sold: 87,
     createdAt: Date.now() - 30 * 86400000,
-    media: [{ url: "https://images.unsplash.com/photo-1587836374828-4dbafa94cf0e?w=400&h=400&fit=crop&auto=format", type: "image" }],
+    media: [{ url: "https://video.wixstatic.com/video/81b41d_301d497d21394d5d95add6eba5e210a5/360p/mp4/file.mp4", type: "video" }],
   },
   {
     id: "p-2",
