@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- topo do diamante -->
+  <polygon points="6,13 16,3 26,13" fill="#60a5fa"/>
+  <!-- face esquerda -->
+  <polygon points="2,13 6,13 11,29" fill="#1d4ed8"/>
+  <!-- face direita -->
+  <polygon points="30,13 26,13 21,29" fill="#1d4ed8"/>
+  <!-- face central esquerda -->
+  <polygon points="2,13 11,29 16,29" fill="#2563eb"/>
+  <!-- face central direita -->
+  <polygon points="30,13 21,29 16,29" fill="#3b82f6"/>
+  <!-- linha divisória topo -->
+  <polygon points="2,13 6,13 16,13 26,13 30,13 16,3" fill="none" stroke="#93c5fd" stroke-width="0.5" opacity="0.6"/>
+</svg>
