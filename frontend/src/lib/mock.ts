@@ -195,7 +195,7 @@ export const baseProducts: Product[] = [
     categoryId: "cat-relogios",
     sold: 119,
     createdAt: Date.now() - 50 * 86400000,
-    media: [{ url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&h=400&fit=crop&auto=format", type: "image" }],
+    media: [{ url: "https://video.wixstatic.com/video/81b41d_32c50456d2bc4255ab5b136da768afcd/360p/mp4/file.mp4", type: "video" }],
   },
 ];
 
