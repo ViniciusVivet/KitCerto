@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { useQuery } from "@tanstack/react-query";
 import { listProductsWithMeta, getBestSellingProductsWithMeta, getLatestProductsWithMeta } from "@/services/products";
 import { listCategoriesWithMeta } from "@/services/categories";
+import { baseProducts, categories as mockCategories } from "@/lib/mock";
 import { HorizontalCarousel } from "@/components/ui/carousel";
 import { useState } from "react";
 import { useCart } from "@/context/cart";
@@ -76,31 +77,35 @@ export default function Home() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<string | undefined>(undefined);
   const { isAuthenticated, register } = useAuth();
-  const { data: catsMeta, isLoading: isLoadingCats } = useQuery({ 
-    queryKey: ["cats"], 
-    queryFn: () => listCategoriesWithMeta() 
+  const { data: catsMeta } = useQuery({
+    queryKey: ["cats"],
+    queryFn: () => listCategoriesWithMeta(),
+    initialData: { data: mockCategories, source: "mock" as const, fallback: true },
   });
   const cats = catsMeta?.data ?? [];
-  
-  const { data: productsMeta, isLoading: isLoadingProducts } = useQuery({ 
-    queryKey: ["products", q, cat], 
-    queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }) 
+
+  const { data: productsMeta } = useQuery({
+    queryKey: ["products", q, cat],
+    queryFn: () => listProductsWithMeta({ name: q || undefined, categoryId: cat, page: 1, pageSize: 20 }),
+    initialData: (!q && !cat) ? { data: { items: baseProducts, total: baseProducts.length, page: 1, pageSize: 20 }, source: "mock" as const, fallback: true } : undefined,
   });
   const products = productsMeta?.data;
-  
-  const { data: bestMeta, isLoading: isLoadingBest } = useQuery({ 
-    queryKey: ["bestSelling"], 
-    queryFn: () => getBestSellingProductsWithMeta(10) 
+
+  const { data: bestMeta } = useQuery({
+    queryKey: ["bestSelling"],
+    queryFn: () => getBestSellingProductsWithMeta(10),
+    initialData: { data: [...baseProducts].sort((a, b) => (b.sold ?? 0) - (a.sold ?? 0)).slice(0, 10), source: "mock" as const, fallback: true },
   });
   const bestSelling = bestMeta?.data ?? [];
-  
-  const { data: latestMeta, isLoading: isLoadingLatest } = useQuery({ 
-    queryKey: ["latest"], 
-    queryFn: () => getLatestProductsWithMeta(10) 
+
+  const { data: latestMeta } = useQuery({
+    queryKey: ["latest"],
+    queryFn: () => getLatestProductsWithMeta(10),
+    initialData: { data: [...baseProducts].sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0)).slice(0, 10), source: "mock" as const, fallback: true },
   });
   const latest = latestMeta?.data ?? [];
 
-  const isLoading = isLoadingProducts || isLoadingCats;
+  const isLoading = false;
 
   return (
     <div className="mx-auto max-w-[92rem] px-4 py-6 sm:px-5 lg:px-7">
