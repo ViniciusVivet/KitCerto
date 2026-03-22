@@ -187,6 +187,17 @@ export const baseProducts: Product[] = [
     media: [{ url: "https://video.wixstatic.com/video/81b41d_4200e0fff4f645f3a63cab8d8f9a3bf3/360p/mp4/file.mp4", type: "video" }],
   },
   {
+    id: "p-10",
+    name: "Corrente Cuban Cravejada",
+    description: "Corrente Cuban Link totalmente cravejada com strass. Banhada a ouro 18k, elos largos com acabamento cravejado em toda extensão.",
+    price: 199.95,
+    stock: 12,
+    categoryId: "cat-cravejados",
+    sold: 88,
+    createdAt: Date.now() - 5 * 86400000,
+    media: [{ url: "https://static.wixstatic.com/media/81b41d_9e4a4f894b784af59d6d256c1261a512~mv2.png/v1/fill/w_448,h_440,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/81b41d_9e4a4f894b784af59d6d256c1261a512~mv2.png", type: "image" }],
+  },
+  {
     id: "p-9",
     name: "Relógio Clássic Cravejado Cyclop",
     description: "Relógio clássico com lente Cyclop cravejada de strass. Design inspirado nos grandes clássicos, reinterpretado com brilho street.",
