@@ -48,9 +48,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const initializeAuth = async () => {
       try {
         setIsLoading(true);
-        
+
+        // Timeout de segurança: se o Keycloak demorar mais de 3s (servidor lento ou
+        // offline), desbloqueia a UI como "não autenticado" para não travar a página.
+        const timeoutId = setTimeout(() => setIsLoading(false), 3000);
+
         // Inicializar Keycloak
         const authenticated = await initKeycloak();
+        clearTimeout(timeoutId);
         
         if (authenticated) {
           setIsAuthenticated(true);
