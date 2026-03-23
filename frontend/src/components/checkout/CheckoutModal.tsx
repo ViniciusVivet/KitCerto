@@ -1,6 +1,6 @@
 "use client";
 
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import React from "react";
@@ -50,7 +50,7 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
   const { state, subtotal, dispatch } = useCart();
   const { notify } = useToast();
   const { isAuthenticated } = useAuth();
-  const [step, setStep] = React.useState<1 | 2 | 3 | 4>(1);
+  const [step, setStep] = React.useState<1 | 2>(1);
   const [couponInput, setCouponInput] = React.useState("");
   const [appliedCoupon, setAppliedCoupon] = React.useState<Coupon | null>(null);
   const [cep, setCep] = React.useState("");
@@ -271,113 +271,116 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
             </section>
           )}
           {step === 2 && (
-            <section className="space-y-3">
-              <h4 className="text-sm font-medium">Frete</h4>
-              <div className="rounded-md border p-3 text-sm">
-                <p>
-                  Sedex (2-3 dias úteis) — {shipping > 0 ? shipping.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "Grátis"}
-                </p>
-                {subtotal < freeShippingThreshold && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Frete grátis em compras acima de {freeShippingThreshold.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                  </p>
-                )}
-              </div>
-              <div className="flex justify-between">
-                <Button variant="secondary" onClick={() => setStep(1)}>Voltar</Button>
-                <Button onClick={() => setStep(3)}>Continuar</Button>
-              </div>
-            </section>
-          )}
-          {step === 3 && (
-            <section className="space-y-3">
-              <h4 className="text-sm font-medium">Pagamento</h4>
-              <p className="text-sm text-muted-foreground rounded-md border p-3 bg-muted/50">
-                O pagamento (cartão de crédito/débito ou PIX) será realizado na página segura do Mercado Pago após você clicar em <strong>Revisar</strong> e <strong>Confirmar</strong>.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Cartões salvos em <strong>Pagamentos</strong> (área do cliente) podem ser usados na página do Mercado Pago.
-              </p>
-              <div className="flex items-center gap-2">
-                <Input
-                  placeholder="Cupom de desconto"
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value)}
-                  disabled={!!appliedCoupon}
-                />
-                {appliedCoupon ? (
-                  <Button variant="secondary" onClick={() => { setAppliedCoupon(null); setCouponInput(""); }}>
-                    Remover
-                  </Button>
-                ) : (
-                  <Button variant="secondary" onClick={handleApplyCoupon}>Aplicar</Button>
-                )}
-              </div>
-              {appliedCoupon && (
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  Cupom {appliedCoupon.code} aplicado (−{discount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })})
-                </p>
-              )}
-              <div className="flex justify-between">
-                <Button variant="secondary" onClick={() => setStep(2)}>Voltar</Button>
-                <Button onClick={() => setStep(4)}>Revisar</Button>
-              </div>
-            </section>
-          )}
-          {step === 4 && (
-            <section className="space-y-3">
-              <h4 className="text-sm font-medium">Revisão</h4>
-              <ul className="divide-y rounded-md border text-sm max-h-40 overflow-y-auto">
+            <section className="space-y-4">
+              {/* Itens do pedido */}
+              <ul className="divide-y rounded-md border text-sm max-h-36 overflow-y-auto">
                 {state.items.map((i) => (
-                  <li key={i.id} className="flex items-center justify-between p-3">
+                  <li key={i.id} className="flex items-center justify-between px-3 py-2">
                     <span className="truncate pr-2">{i.name} × {i.qty}</span>
-                    <span>{(i.price * i.qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                    <span className="shrink-0">{(i.price * i.qty).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
                   </li>
                 ))}
               </ul>
-              <div className="text-sm text-muted-foreground">Subtotal {subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
-              <div className="text-sm text-muted-foreground">Frete {shipping.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
-              {discount > 0 && (
-                <div className="text-sm text-muted-foreground">Desconto −{discount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
+
+              {/* Frete */}
+              <div className="rounded-md border bg-muted/30 px-3 py-2 text-sm flex items-center justify-between">
+                <span className="text-muted-foreground">Sedex (2-3 dias úteis)</span>
+                <span className={shipping === 0 ? "text-emerald-500 font-medium" : ""}>
+                  {shipping > 0 ? shipping.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "Grátis 🎉"}
+                </span>
+              </div>
+              {subtotal < freeShippingThreshold && (
+                <p className="text-xs text-muted-foreground -mt-2">
+                  Faltam {(freeShippingThreshold - subtotal).toLocaleString("pt-BR", { style: "currency", currency: "BRL" })} para frete grátis
+                </p>
               )}
-              <div className="font-semibold">Total {total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
+
+              {/* Cupom */}
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Cupom de desconto (opcional)"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    disabled={!!appliedCoupon}
+                    onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                  />
+                  {appliedCoupon ? (
+                    <Button variant="secondary" onClick={() => { setAppliedCoupon(null); setCouponInput(""); }}>
+                      Remover
+                    </Button>
+                  ) : (
+                    <Button variant="secondary" onClick={handleApplyCoupon}>Aplicar</Button>
+                  )}
+                </div>
+                {appliedCoupon && (
+                  <p className="text-xs text-emerald-500">
+                    ✓ {appliedCoupon.code} — −{discount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
+                  </p>
+                )}
+              </div>
+
+              {/* Totais */}
+              <div className="rounded-md border divide-y text-sm">
+                <div className="flex justify-between px-3 py-2 text-muted-foreground">
+                  <span>Subtotal</span>
+                  <span>{subtotal.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                </div>
+                {discount > 0 && (
+                  <div className="flex justify-between px-3 py-2 text-emerald-500">
+                    <span>Desconto</span>
+                    <span>−{discount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                  </div>
+                )}
+                <div className="flex justify-between px-3 py-2 text-muted-foreground">
+                  <span>Frete</span>
+                  <span>{shipping === 0 ? "Grátis" : shipping.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                </div>
+                <div className="flex justify-between px-3 py-2.5 font-semibold text-base">
+                  <span>Total</span>
+                  <span>{total.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-muted-foreground">
+                O pagamento será realizado na página segura do <strong>Mercado Pago</strong> (cartão ou PIX).
+              </p>
+
               <div className="flex justify-between">
-                <Button variant="secondary" onClick={() => setStep(3)}>Voltar</Button>
-                <DialogClose asChild>
-                  <Button
-                    disabled={isSubmitting}
-                    onClick={async () => {
-                      try {
-                        setIsSubmitting(true);
-                        const checkout = await createOrderCheckout({
-                          items: state.items.map((i) => ({ productId: i.id, quantity: i.qty })),
-                          shipping: { addressLine: addressLineForApi, city: city.trim(), state: uf.trim() },
-                          couponCode: appliedCoupon?.code ?? null,
-                          ...(!isAuthenticated && {
-                            guestName: guestName.trim(),
-                            guestEmail: guestEmail.trim().toLowerCase(),
-                            guestPhone: guestPhone.trim() || undefined,
-                          }),
-                        });
-                        if (checkout.guestToken) {
-                          localStorage.setItem(
-                            `kitcerto:checkout:${checkout.orderId}`,
-                            JSON.stringify({ guestToken: checkout.guestToken })
-                          );
-                        }
-                        dispatch({ type: "clear" });
-                        notify({ title: "Checkout criado", description: "Redirecionando para pagamento…", variant: "success" });
-                        window.location.href = checkout.checkoutUrl;
-                      } catch (err: unknown) {
-                        notify({ title: "Falha no checkout", description: parseCheckoutError(err), variant: "error" });
-                      } finally {
-                        setIsSubmitting(false);
+                <Button variant="secondary" onClick={() => setStep(1)}>Voltar</Button>
+                <Button
+                  disabled={isSubmitting}
+                  onClick={async () => {
+                    try {
+                      setIsSubmitting(true);
+                      const checkout = await createOrderCheckout({
+                        items: state.items.map((i) => ({ productId: i.id, quantity: i.qty })),
+                        shipping: { addressLine: addressLineForApi, city: city.trim(), state: uf.trim() },
+                        couponCode: appliedCoupon?.code ?? null,
+                        ...(!isAuthenticated && {
+                          guestName: guestName.trim(),
+                          guestEmail: guestEmail.trim().toLowerCase(),
+                          guestPhone: guestPhone.trim() || undefined,
+                        }),
+                      });
+                      if (checkout.guestToken) {
+                        localStorage.setItem(
+                          `kitcerto:checkout:${checkout.orderId}`,
+                          JSON.stringify({ guestToken: checkout.guestToken })
+                        );
                       }
-                    }}
-                  >
-                    Confirmar
-                  </Button>
-                </DialogClose>
+                      dispatch({ type: "clear" });
+                      notify({ title: "Checkout criado", description: "Redirecionando para pagamento…", variant: "success" });
+                      window.location.href = checkout.checkoutUrl;
+                    } catch (err: unknown) {
+                      notify({ title: "Falha no checkout", description: parseCheckoutError(err), variant: "error" });
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                >
+                  {isSubmitting ? "Aguarde…" : "Ir para pagamento →"}
+                </Button>
               </div>
             </section>
           )}

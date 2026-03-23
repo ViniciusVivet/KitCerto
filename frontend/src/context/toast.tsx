@@ -19,18 +19,18 @@ const DURATION = 3000;
 const variantConfig: Record<ToastVariant, { border: string; glow: string; icon: React.ReactNode }> = {
   success: {
     border: "border-emerald-500/40",
-    glow: "shadow-[0_0_28px_rgba(16,185,129,0.22)]",
-    icon: <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0 mt-0.5" />,
+    glow: "shadow-[0_0_36px_rgba(16,185,129,0.28)]",
+    icon: <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />,
   },
   error: {
     border: "border-red-500/40",
-    glow: "shadow-[0_0_28px_rgba(239,68,68,0.22)]",
-    icon: <AlertCircle className="h-4 w-4 text-red-400 shrink-0 mt-0.5" />,
+    glow: "shadow-[0_0_36px_rgba(239,68,68,0.28)]",
+    icon: <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />,
   },
   default: {
     border: "border-primary/30",
-    glow: "shadow-[0_0_28px_rgba(59,130,246,0.2)]",
-    icon: <Info className="h-4 w-4 text-primary shrink-0 mt-0.5" />,
+    glow: "shadow-[0_0_36px_rgba(59,130,246,0.26)]",
+    icon: <Info className="h-5 w-5 text-primary shrink-0 mt-0.5" />,
   },
 };
 
@@ -47,7 +47,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
   return (
     <div
       className={[
-        "relative flex items-start gap-3 rounded-xl border px-4 py-3",
+        "relative flex items-start gap-4 rounded-xl border px-5 py-4",
         "bg-zinc-950/92 backdrop-blur-xl",
         border,
         glow,
@@ -62,18 +62,18 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose: (id: string) => 
       {icon}
 
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-semibold text-white leading-snug">{toast.title}</p>
+        <p className="text-base font-semibold text-white leading-snug">{toast.title}</p>
         {toast.description && (
-          <p className="mt-0.5 text-xs text-zinc-400 leading-snug">{toast.description}</p>
+          <p className="mt-0.5 text-sm text-zinc-400 leading-snug">{toast.description}</p>
         )}
       </div>
 
       <button
         onClick={() => onClose(toast.id)}
-        className="shrink-0 rounded-md p-1 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
+        className="shrink-0 rounded-md p-1.5 text-zinc-500 transition-colors hover:bg-white/10 hover:text-zinc-200"
         aria-label="Fechar notificação"
       >
-        <X className="h-3.5 w-3.5" />
+        <X className="h-4 w-4" />
       </button>
     </div>
   );
@@ -98,7 +98,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
       {/* canto inferior direito — não bloqueia conteúdo */}
       <div
         aria-live="polite"
-        className="pointer-events-none fixed bottom-6 right-4 z-[60] flex w-full max-w-[22rem] flex-col gap-2 sm:right-6"
+        className="pointer-events-none fixed bottom-6 right-4 z-[60] flex w-full max-w-[29rem] flex-col gap-2.5 sm:right-6"
       >
         {toasts.map((t) => (
           <div key={t.id} className="pointer-events-auto">
