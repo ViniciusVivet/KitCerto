@@ -64,7 +64,7 @@ export function Header() {
 
           {/* Acesso mobile a Meus pedidos */}
           <Link href="/meus-pedidos" className="sm:hidden" aria-label="Meus pedidos">
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="h-11 w-11">
               <Package className="h-5 w-5" />
             </Button>
           </Link>
@@ -81,11 +81,11 @@ export function Header() {
 
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
-              <Button variant="default" size="icon" aria-label="Abrir carrinho">
+              <Button variant="default" size="icon" className="h-11 w-11" aria-label="Abrir carrinho">
                 <div className="relative">
                   <ShoppingCart className="h-5 w-5" />
                   {state.items.length > 0 && (
-                    <span className="absolute -right-2 -top-2 rounded-full bg-primary px-1.5 text-[10px] font-semibold text-primary-foreground">
+                    <span className="absolute -right-2 -top-2 rounded-full bg-primary px-1.5 text-xs font-semibold text-primary-foreground min-w-[1.25rem] text-center">
                       {state.items.reduce((acc, i) => acc + i.qty, 0)}
                     </span>
                   )}
@@ -139,10 +139,10 @@ function CartContents({ onClose }: { onClose: () => void }) {
               <div className="text-xs text-muted-foreground">{i.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</div>
             </div>
             <div className="flex items-center gap-1 shrink-0">
-              <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => dispatch({ type: "dec", id: i.id })}>-</Button>
+              <Button size="icon" variant="secondary" className="h-11 w-11" onClick={() => dispatch({ type: "dec", id: i.id })}>-</Button>
               <span className="w-6 text-center text-sm">{i.qty}</span>
-              <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => dispatch({ type: "inc", id: i.id })}>+</Button>
-              <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => dispatch({ type: "remove", id: i.id })}>x</Button>
+              <Button size="icon" variant="secondary" className="h-11 w-11" onClick={() => dispatch({ type: "inc", id: i.id })}>+</Button>
+              <Button size="icon" variant="destructive" className="h-11 w-11" onClick={() => dispatch({ type: "remove", id: i.id })}>x</Button>
             </div>
           </li>
         ))}
