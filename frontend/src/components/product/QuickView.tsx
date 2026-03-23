@@ -89,7 +89,7 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{trigger}</DialogTrigger>
-      <DialogContent className="w-[98vw] max-w-[90rem] h-[92vh] flex flex-col p-0 overflow-hidden border-primary/20 bg-background/95 backdrop-blur-2xl shadow-2xl">
+      <DialogContent className="w-full max-w-[90rem] h-[100dvh] md:w-[98vw] md:h-[92vh] flex flex-col p-0 overflow-hidden border-primary/20 bg-background/95 backdrop-blur-2xl shadow-2xl rounded-none md:rounded-lg">
         <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
           {/* Lado Esquerdo: Media (Maior) */}
           <div className="relative flex-[2.5] bg-black/40 flex flex-col border-r border-white/5">
@@ -183,9 +183,9 @@ export function QuickView({ trigger, id, name, price, media }: { trigger: React.
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Quantidade</span>
                   <div className="flex items-center gap-4 bg-background rounded-full p-1 border">
-                    <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => Math.max(1, q - 1))}>-</button>
+                    <button className="h-11 w-11 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => Math.max(1, q - 1))}>-</button>
                     <span className="w-4 text-center font-bold">{qty}</span>
-                    <button className="h-8 w-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => q + 1)}>+</button>
+                    <button className="h-11 w-11 flex items-center justify-center rounded-full hover:bg-muted transition-colors" onClick={() => setQty((q) => q + 1)}>+</button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between border-t border-border pt-4">
