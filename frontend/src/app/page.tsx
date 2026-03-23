@@ -117,32 +117,30 @@ export default function Home() {
         <div className="grid grid-cols-1 md:grid-cols-3 min-h-[220px] md:min-h-[280px]">
           {/* Card 1 — vídeo de fundo */}
           <div className="relative overflow-hidden">
-            <video
-              className="absolute inset-0 h-full w-full object-cover scale-105"
-              src="https://video.wixstatic.com/video/81b41d_301d497d21394d5d95add6eba5e210a5/360p/mp4/file.mp4"
-              muted
-              loop
-              playsInline
-              autoPlay
-            />
-            {/* overlay escuro para o texto ser legível */}
+            <video className="absolute inset-0 h-full w-full object-cover" src="/videos/banner1.mp4" muted loop playsInline autoPlay />
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
             <div className="relative z-10 flex h-full flex-col justify-end p-6">
               <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow">Streetwear Neon</h2>
               <p className="mt-1 text-sm text-white/70">Coleção com brilho único</p>
             </div>
           </div>
-          {/* Card 2 */}
-          <div className="hidden md:flex flex-col justify-end bg-gradient-to-br from-accent/30 via-primary/10 to-black/60 p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(99,179,237,0.15),transparent_70%)]" />
-            <h2 className="relative text-2xl font-bold tracking-tight text-white drop-shadow">Jóias & Semi-jóias</h2>
-            <p className="relative mt-1 text-sm text-white/60">Detalhes que fazem a diferença</p>
+          {/* Card 2 — vídeo de fundo */}
+          <div className="hidden md:block relative overflow-hidden">
+            <video className="absolute inset-0 h-full w-full object-cover" src="/videos/banner2.mp4" muted loop playsInline autoPlay />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="relative z-10 flex h-full flex-col justify-end p-6">
+              <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow">Jóias & Semi-jóias</h2>
+              <p className="mt-1 text-sm text-white/60">Detalhes que fazem a diferença</p>
+            </div>
           </div>
-          {/* Card 3 */}
-          <div className="hidden md:flex flex-col justify-end bg-gradient-to-br from-primary/20 via-accent/10 to-black/60 p-6 relative overflow-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(59,130,246,0.12),transparent_70%)]" />
-            <h2 className="relative text-2xl font-bold tracking-tight text-white drop-shadow">Outfits</h2>
-            <p className="relative mt-1 text-sm text-white/60">Monte seu look com estilo</p>
+          {/* Card 3 — vídeo de fundo */}
+          <div className="hidden md:block relative overflow-hidden">
+            <video className="absolute inset-0 h-full w-full object-cover" src="/videos/banner3.mp4" muted loop playsInline autoPlay />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+            <div className="relative z-10 flex h-full flex-col justify-end p-6">
+              <h2 className="text-2xl font-bold tracking-tight text-white drop-shadow">Outfits</h2>
+              <p className="mt-1 text-sm text-white/60">Monte seu look com estilo</p>
+            </div>
           </div>
         </div>
         <div className="border-t p-4 flex flex-wrap items-center gap-4 bg-background/50 backdrop-blur-md sticky top-0 z-20 shadow-sm">
