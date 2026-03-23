@@ -15,18 +15,18 @@
       "clientId": "kitcerto-api",
       "name": "KitCerto API",
       "publicClient": true,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "standardFlowEnabled": false,
       "serviceAccountsEnabled": false,
       "implicitFlowEnabled": false,
-      "bearerOnly": false,
+      "bearerOnly": true,
       "protocol": "openid-connect",
       "attributes": {
         "access.token.lifespan": "3600"
       },
-      "defaultClientScopes": ["profile", "email", "roles"],   
-      "redirectUris": ["*"],
-      "webOrigins": ["*"]
+      "defaultClientScopes": ["profile", "email", "roles"],
+      "redirectUris": [],
+      "webOrigins": []
     },
     {
       "clientId": "kitcerto-frontend",
@@ -55,8 +55,18 @@
           }
         }
       ],
-      "redirectUris": ["http://localhost/*", "http://localhost:3000/*", "http://frontend:3000/*"],
-      "webOrigins": ["http://localhost", "http://localhost:3000", "http://frontend:3000"]
+      "redirectUris": [
+        "http://localhost/*",
+        "http://localhost:3000/*",
+        "http://frontend:3000/*",
+        "https://kit-certo.vercel.app/*"
+      ],
+      "webOrigins": [
+        "http://localhost",
+        "http://localhost:3000",
+        "http://frontend:3000",
+        "https://kit-certo.vercel.app"
+      ]
     }
   ],
   "users": [
