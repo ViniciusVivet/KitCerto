@@ -11,6 +11,7 @@ import { LoginButton } from "@/components/auth/LoginButton";
 import { createOrderCheckout } from "@/services/orders";
 import { getSettings } from "@/services/settings";
 import { listActiveCoupons, type Coupon } from "@/services/coupons";
+import { listAddresses, type Address } from "@/services/addresses";
 import { useQuery } from "@tanstack/react-query";
 
 function parseCheckoutError(err: unknown): string {
@@ -64,6 +65,11 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
 
   const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
   const { data: couponsList = [] } = useQuery({ queryKey: ["coupons"], queryFn: listActiveCoupons });
+  const { data: savedAddresses = [] } = useQuery({
+    queryKey: ["addresses"],
+    queryFn: listAddresses,
+    enabled: isAuthenticated,
+  });
 
   const freeShippingThreshold = settings?.freeShippingThreshold ?? 250;
   const shippingValue = subtotal >= freeShippingThreshold ? 0 : 19.9;
@@ -89,6 +95,16 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
   }, [street, number, complement, neighborhood]);
 
   const canContinueAddress = Boolean(street?.trim() && city?.trim() && uf?.trim() && number?.trim());
+
+  function fillFromSavedAddress(addr: Address) {
+    setCep(addr.zipCode ?? "");
+    setStreet(addr.street ?? "");
+    setNumber(addr.number ?? "");
+    setComplement(addr.complement ?? "");
+    setNeighborhood(addr.neighborhood ?? "");
+    setCity(addr.city ?? "");
+    setUf(addr.state ?? "");
+  }
 
   async function handleCepBlur() {
     const digits = cep.replace(/\D/g, "");
@@ -171,6 +187,33 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
               ) : (
                 <>
                   <h4 className="text-sm font-medium">Endereço de entrega</h4>
+
+                  {/* Endereços salvos */}
+                  {savedAddresses.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs text-muted-foreground">Seus endereços salvos:</p>
+                      <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                        {savedAddresses.map((addr) => (
+                          <button
+                            key={addr.id}
+                            type="button"
+                            onClick={() => fillFromSavedAddress(addr)}
+                            className="flex flex-col items-start gap-0.5 rounded-lg border border-white/10 bg-muted/40 px-3 py-2 text-left text-sm transition-all hover:border-primary/50 hover:bg-primary/5 active:scale-[0.99]"
+                          >
+                            <span className="font-medium text-foreground">
+                              {addr.label ?? `${addr.street}, ${addr.number}`}
+                              {addr.isDefault && <span className="ml-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] text-primary">Padrão</span>}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {addr.street}, {addr.number}{addr.complement ? ` (${addr.complement})` : ""} — {addr.city}/{addr.state}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Ou preencha um novo endereço abaixo:</p>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-3 gap-2">
                     <Input
                       placeholder="CEP"
