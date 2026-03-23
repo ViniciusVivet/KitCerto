@@ -65,5 +65,14 @@ namespace KitCerto.Infrastructure.Repositories
                 .Set(x => x.UpdatedAtUtc, System.DateTime.UtcNow);
             await _col.UpdateOneAsync(filter, update, cancellationToken: ct);
         }
+
+        public async Task<Order?> GetByIdAndGuestTokenAsync(string id, string guestToken, CancellationToken ct)
+        {
+            var filter = Builders<Order>.Filter.And(
+                Builders<Order>.Filter.Eq(x => x.Id, id),
+                Builders<Order>.Filter.Eq(x => x.GuestToken, guestToken)
+            );
+            return await _col.Find(filter).FirstOrDefaultAsync(ct);
+        }
     }
 }

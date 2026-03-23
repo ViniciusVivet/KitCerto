@@ -20,7 +20,17 @@ namespace KitCerto.Domain.Orders
         [BsonElement("Items")] public List<OrderItem> Items { get; private set; } = new();
         [BsonElement("Shipping")] public OrderShipping? Shipping { get; private set; }
 
-        public Order(string id, string userId, string currency, decimal totalAmount, List<OrderItem> items, OrderShipping? shipping)
+        // Campos de compra como convidado (null para usuários autenticados)
+        [BsonElement("GuestName")]  [BsonIgnoreIfNull] public string? GuestName  { get; private set; }
+        [BsonElement("GuestEmail")] [BsonIgnoreIfNull] public string? GuestEmail { get; private set; }
+        [BsonElement("GuestPhone")] [BsonIgnoreIfNull] public string? GuestPhone { get; private set; }
+        /// <summary>Token aleatório (Guid) usado para o convidado consultar o status sem autenticação.</summary>
+        [BsonElement("GuestToken")] [BsonIgnoreIfNull] public string? GuestToken { get; private set; }
+
+        public Order(string id, string userId, string currency, decimal totalAmount,
+            List<OrderItem> items, OrderShipping? shipping,
+            string? guestName = null, string? guestEmail = null,
+            string? guestPhone = null, string? guestToken = null)
         {
             Id = id;
             UserId = userId;
@@ -28,6 +38,10 @@ namespace KitCerto.Domain.Orders
             TotalAmount = totalAmount;
             Items = items;
             Shipping = shipping;
+            GuestName = guestName;
+            GuestEmail = guestEmail;
+            GuestPhone = guestPhone;
+            GuestToken = guestToken;
         }
 
         public Order() { }

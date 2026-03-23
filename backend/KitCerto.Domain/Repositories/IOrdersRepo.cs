@@ -15,5 +15,7 @@ namespace KitCerto.Domain.Repositories
         Task<IReadOnlyList<Order>> ListWhereItemsContainProductIdsAsync(IReadOnlyList<string> productIds, CancellationToken ct);
         Task UpdatePaymentAsync(string id, string provider, string preferenceId, CancellationToken ct);
         Task UpdateStatusAsync(string id, string status, CancellationToken ct);
+        /// <summary>Busca pedido pelo ID e valida o GuestToken — usado para consulta de status sem autenticação.</summary>
+        Task<Order?> GetByIdAndGuestTokenAsync(string id, string guestToken, CancellationToken ct);
     }
 }
