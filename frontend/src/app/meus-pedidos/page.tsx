@@ -78,12 +78,12 @@ export default function OrdersPage() {
 
       <div>
           <div className="mb-4 flex flex-wrap items-center gap-2">
-            <Input placeholder="Buscar por código ou item…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-80" />
+            <Input placeholder="Buscar por código ou item…" value={q} onChange={(e) => setQ(e.target.value)} className="w-full sm:w-80 text-base" />
             <div className="flex flex-wrap items-center gap-2">
               {statusFilters.map(({ value, label }) => (
                 <Badge
                   key={value ?? "all"}
-                  className={`${status === value ? "bg-primary text-primary-foreground" : "cursor-pointer hover:bg-primary/80"}`}
+                  className={`py-1.5 px-3 cursor-pointer text-xs ${status === value ? "bg-primary text-primary-foreground" : "hover:bg-primary/80"}`}
                   onClick={() => setStatus(value)}
                 >
                   {label}
@@ -91,9 +91,9 @@ export default function OrdersPage() {
               ))}
             </div>
             <div className="flex items-center gap-2 text-sm">
-              <Button variant={days === 30 ? "default" : "secondary"} onClick={() => setDays(30)}>30 dias</Button>
-              <Button variant={days === 90 ? "default" : "secondary"} onClick={() => setDays(90)}>90 dias</Button>
-              <Button variant={days === 180 ? "default" : "secondary"} onClick={() => setDays(180)}>180 dias</Button>
+              <Button variant={days === 30 ? "default" : "secondary"} className="h-11" onClick={() => setDays(30)}>30 dias</Button>
+              <Button variant={days === 90 ? "default" : "secondary"} className="h-11" onClick={() => setDays(90)}>90 dias</Button>
+              <Button variant={days === 180 ? "default" : "secondary"} className="h-11" onClick={() => setDays(180)}>180 dias</Button>
             </div>
           </div>
 
@@ -131,10 +131,10 @@ export default function OrdersPage() {
                     </div>
                     <p className="text-sm text-muted-foreground">{new Date(o.createdAtUtc).toLocaleDateString("pt-BR")} • {o.items.length} itens</p>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 mt-2 sm:mt-0">
                     <span className="font-semibold">{o.totalAmount.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</span>
                     <OrderDetails order={o} />
-                    <Button onClick={() => {
+                    <Button className="h-11" onClick={() => {
                       o.items.forEach(it => dispatch({ type: "add", item: { id: it.productId, name: it.name, price: it.unitPrice, qty: it.quantity } }));
                       notify({ title: "Itens adicionados ao carrinho", description: `Pedido ${o.id}`, variant: "success" });
                     }}>Repetir compra</Button>
@@ -152,7 +152,7 @@ function OrderDetails({ order }: { order: Order }) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="secondary">Detalhes</Button>
+        <Button variant="secondary" className="h-11">Detalhes</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
