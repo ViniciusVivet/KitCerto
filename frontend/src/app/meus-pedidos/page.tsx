@@ -64,8 +64,9 @@ export default function OrdersPage() {
   const { data: orders, isLoading } = useQuery({
     queryKey: ["orders"],
     queryFn: () => listOrders(),
-    refetchInterval: (data) => {
-      const hasPending = (data ?? []).some((o) =>
+    refetchInterval: (query) => {
+      const orders = query.state.data;
+      const hasPending = (orders ?? []).some((o) =>
         ["pending", "pending_payment", "processing"].includes(o.status)
       );
       return hasPending ? 15_000 : false;
