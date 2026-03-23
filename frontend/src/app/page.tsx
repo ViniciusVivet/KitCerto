@@ -64,10 +64,10 @@ function ProductCard({ id, name, price, media }: { id: string; name: string; pri
       </CardContent>
       <CardFooter className="p-4 pt-0">
         <div className="flex w-full items-center gap-2">
-          <Button size="sm" className="flex-1 font-bold h-9" onClick={() => { dispatch({ type: "add", item: { id, name, price, qty: 1, imageUrl: cover?.url } }); notify({ title: "Adicionado ao carrinho", description: name, variant: "success" }); }}>
+          <Button size="sm" className="flex-1 font-bold h-11" onClick={() => { dispatch({ type: "add", item: { id, name, price, qty: 1, imageUrl: cover?.url } }); notify({ title: "Adicionado ao carrinho", description: name, variant: "success" }); }}>
             Comprar
           </Button>
-          <Button variant={isFav(id) ? "default" : "secondary"} size="icon" className="h-9 w-9" aria-label="Favoritar" onClick={() => toggle(id)}>
+          <Button variant={isFav(id) ? "default" : "secondary"} size="icon" className="h-11 w-11" aria-label="Favoritar" onClick={() => toggle(id)}>
             <Heart className={`h-4 w-4 ${isFav(id) ? "fill-primary" : ""}`} />
           </Button>
         </div>
