@@ -15,6 +15,12 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Kit Certo | Correntes, Relógios e Acessórios",
   description: "Loja oficial da Kit Certo — correntes, relógios cravejados, brincos e acessórios com estilo street premium.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover",
+  },
+  themeColor: "#000000",
 };
 
 export default function RootLayout({
