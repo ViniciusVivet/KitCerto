@@ -103,12 +103,13 @@ export default function ProdutoPage() {
               <Button
                 variant="secondary"
                 size="icon"
+                className="h-11 w-11"
                 onClick={() => setQty((n) => Math.max(1, n - 1))}
               >
                 -
               </Button>
               <span className="w-10 text-center">{qty}</span>
-              <Button variant="secondary" size="icon" onClick={() => setQty((n) => n + 1)}>
+              <Button variant="secondary" size="icon" className="h-11 w-11" onClick={() => setQty((n) => n + 1)}>
                 +
               </Button>
             </div>
