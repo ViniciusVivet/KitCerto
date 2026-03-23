@@ -4,8 +4,11 @@ using MediatR;
 namespace KitCerto.Application.Orders.CreateCheckout
 {
     public sealed record CreateOrderCheckoutCmd(
-        string UserId,
+        string? UserId,        // null = compra como convidado
         string? PayerEmail,
+        string? GuestName,
+        string? GuestEmail,
+        string? GuestPhone,
         IReadOnlyList<CreateOrderItem> Items,
         CreateOrderShipping? Shipping,
         string Currency,
@@ -26,6 +29,7 @@ namespace KitCerto.Application.Orders.CreateCheckout
         string? OrderId,
         string? CheckoutUrl,
         decimal TotalAmount,
-        string Currency
+        string Currency,
+        string? GuestToken = null   // null para usuários autenticados
     );
 }

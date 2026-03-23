@@ -81,7 +81,20 @@ namespace KitCerto.Application.Orders.CreateCheckout
                 : new OrderShipping(req.Shipping.AddressLine, req.Shipping.City, req.Shipping.State);
 
             var currency = string.IsNullOrWhiteSpace(req.Currency) ? "BRL" : req.Currency;
-            var order = new Order(orderId, req.UserId, currency, total, items, shipping);
+
+            // Convidado: UserId fica "guest:{email}" para agrupamento futuro
+            var isGuest  = string.IsNullOrWhiteSpace(req.UserId);
+            var userId   = isGuest
+                ? $"guest:{(req.GuestEmail ?? Guid.NewGuid().ToString("N")).Trim().ToLowerInvariant()}"
+                : req.UserId!;
+            // Token de 32 chars hexadecimais: entropia de 128 bits — não é força-brutável
+            var guestToken = isGuest ? Guid.NewGuid().ToString("N") : null;
+
+            var order = new Order(orderId, userId, currency, total, items, shipping,
+                guestName:  req.GuestName,
+                guestEmail: req.GuestEmail,
+                guestPhone: req.GuestPhone,
+                guestToken: guestToken);
             await _orders.CreateAsync(order, ct);
 
             if (appliedCoupon is not null)
@@ -98,6 +111,9 @@ namespace KitCerto.Application.Orders.CreateCheckout
                 }
             }
 
+            // Para convidados, usa o e-mail informado como payer
+            var payerEmail = req.PayerEmail ?? req.GuestEmail;
+
             var session = await _payments.CreateCheckoutAsync(new CheckoutRequest(
                 Description: $"Pedido {orderId}",
                 Amount: total,
@@ -106,14 +122,14 @@ namespace KitCerto.Application.Orders.CreateCheckout
                 FailureUrl: req.FailureUrl,
                 PendingUrl: req.PendingUrl,
                 ExternalReference: orderId,
-                PayerEmail: req.PayerEmail
+                PayerEmail: payerEmail
             ), ct);
 
             await _orders.UpdatePaymentAsync(orderId, "mercadopago", session.PreferenceId, ct);
 
             var checkoutUrl = session.SandboxInitPoint ?? session.InitPoint;
 
-            return new CreateOrderCheckoutResult(true, null, null, orderId, checkoutUrl, total, currency);
+            return new CreateOrderCheckoutResult(true, null, null, orderId, checkoutUrl, total, currency, guestToken);
         }
     }
 }
