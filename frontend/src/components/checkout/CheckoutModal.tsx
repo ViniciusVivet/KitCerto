@@ -62,6 +62,9 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
   const [uf, setUf] = React.useState("");
   const [cepLoading, setCepLoading] = React.useState(false);
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [guestName, setGuestName] = React.useState("");
+  const [guestEmail, setGuestEmail] = React.useState("");
+  const [guestPhone, setGuestPhone] = React.useState("");
 
   const { data: settings } = useQuery({ queryKey: ["settings"], queryFn: getSettings });
   const { data: couponsList = [] } = useQuery({ queryKey: ["coupons"], queryFn: listActiveCoupons });
@@ -95,6 +98,9 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
   }, [street, number, complement, neighborhood]);
 
   const canContinueAddress = Boolean(street?.trim() && city?.trim() && uf?.trim() && number?.trim());
+  const canContinueGuest = !isAuthenticated
+    ? Boolean(guestName.trim() && guestEmail.trim() && guestEmail.includes("@"))
+    : true;
 
   function fillFromSavedAddress(addr: Address) {
     setCep(addr.zipCode ?? "");
@@ -179,66 +185,89 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
         <div className="space-y-4">
           {step === 1 && (
             <section className="space-y-3">
-              {!isAuthenticated ? (
-                <div className="rounded-md border p-4 text-center space-y-3">
-                  <p className="text-sm text-muted-foreground">Faça login para finalizar a compra.</p>
+              {/* CTA de login para convidados — não bloqueia */}
+              {!isAuthenticated && (
+                <div className="flex items-center justify-between rounded-md border border-white/10 bg-muted/30 px-3 py-2">
+                  <p className="text-xs text-muted-foreground">Já tem conta? Entre para usar endereços salvos.</p>
                   <LoginButton />
                 </div>
-              ) : (
-                <>
-                  <h4 className="text-sm font-medium">Endereço de entrega</h4>
-
-                  {/* Endereços salvos */}
-                  {savedAddresses.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-xs text-muted-foreground">Seus endereços salvos:</p>
-                      <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
-                        {savedAddresses.map((addr) => (
-                          <button
-                            key={addr.id}
-                            type="button"
-                            onClick={() => fillFromSavedAddress(addr)}
-                            className="flex flex-col items-start gap-0.5 rounded-lg border border-white/10 bg-muted/40 px-3 py-2 text-left text-sm transition-all hover:border-primary/50 hover:bg-primary/5 active:scale-[0.99]"
-                          >
-                            <span className="font-medium text-foreground">
-                              {addr.label ?? `${addr.street}, ${addr.number}`}
-                              {addr.isDefault && <span className="ml-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] text-primary">Padrão</span>}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {addr.street}, {addr.number}{addr.complement ? ` (${addr.complement})` : ""} — {addr.city}/{addr.state}
-                            </span>
-                          </button>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Ou preencha um novo endereço abaixo:</p>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-3 gap-2">
-                    <Input
-                      placeholder="CEP"
-                      value={cep}
-                      onChange={(e) => setCep(e.target.value)}
-                      onBlur={handleCepBlur}
-                      disabled={cepLoading}
-                      maxLength={9}
-                    />
-                    <Input placeholder="Número" value={number} onChange={(e) => setNumber(e.target.value)} className="col-span-2" />
-                  </div>
-                  <Input placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Complemento" value={complement} onChange={(e) => setComplement(e.target.value)} />
-                    <Input placeholder="Bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
-                  </div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
-                    <Input placeholder="UF" value={uf} onChange={(e) => setUf(e.target.value)} maxLength={2} />
-                  </div>
-                  <div className="flex justify-end">
-                    <Button onClick={() => setStep(2)} disabled={!canContinueAddress}>Continuar</Button>
-                  </div>
-                </>
               )}
+
+              {/* Dados do convidado */}
+              {!isAuthenticated && (
+                <div className="space-y-2">
+                  <h4 className="text-sm font-medium">Seus dados</h4>
+                  <Input
+                    placeholder="Nome completo *"
+                    value={guestName}
+                    onChange={(e) => setGuestName(e.target.value)}
+                  />
+                  <Input
+                    type="email"
+                    placeholder="E-mail * (para receber o pedido)"
+                    value={guestEmail}
+                    onChange={(e) => setGuestEmail(e.target.value)}
+                  />
+                  <Input
+                    type="tel"
+                    placeholder="WhatsApp (opcional)"
+                    value={guestPhone}
+                    onChange={(e) => setGuestPhone(e.target.value)}
+                  />
+                </div>
+              )}
+
+              <h4 className="text-sm font-medium">Endereço de entrega</h4>
+
+              {/* Endereços salvos */}
+              {savedAddresses.length > 0 && (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground">Seus endereços salvos:</p>
+                  <div className="flex flex-col gap-2 max-h-40 overflow-y-auto pr-1">
+                    {savedAddresses.map((addr) => (
+                      <button
+                        key={addr.id}
+                        type="button"
+                        onClick={() => fillFromSavedAddress(addr)}
+                        className="flex flex-col items-start gap-0.5 rounded-lg border border-white/10 bg-muted/40 px-3 py-2 text-left text-sm transition-all hover:border-primary/50 hover:bg-primary/5 active:scale-[0.99]"
+                      >
+                        <span className="font-medium text-foreground">
+                          {addr.label ?? `${addr.street}, ${addr.number}`}
+                          {addr.isDefault && <span className="ml-2 rounded bg-primary/20 px-1.5 py-0.5 text-[10px] text-primary">Padrão</span>}
+                        </span>
+                        <span className="text-xs text-muted-foreground">
+                          {addr.street}, {addr.number}{addr.complement ? ` (${addr.complement})` : ""} — {addr.city}/{addr.state}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Ou preencha um novo endereço abaixo:</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-3 gap-2">
+                <Input
+                  placeholder="CEP"
+                  value={cep}
+                  onChange={(e) => setCep(e.target.value)}
+                  onBlur={handleCepBlur}
+                  disabled={cepLoading}
+                  maxLength={9}
+                />
+                <Input placeholder="Número" value={number} onChange={(e) => setNumber(e.target.value)} className="col-span-2" />
+              </div>
+              <Input placeholder="Rua" value={street} onChange={(e) => setStreet(e.target.value)} />
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Complemento" value={complement} onChange={(e) => setComplement(e.target.value)} />
+                <Input placeholder="Bairro" value={neighborhood} onChange={(e) => setNeighborhood(e.target.value)} />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <Input placeholder="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
+                <Input placeholder="UF" value={uf} onChange={(e) => setUf(e.target.value)} maxLength={2} />
+              </div>
+              <div className="flex justify-end">
+                <Button onClick={() => setStep(2)} disabled={!canContinueAddress || !canContinueGuest}>Continuar</Button>
+              </div>
             </section>
           )}
           {step === 2 && (
@@ -324,7 +353,18 @@ export function CheckoutModal({ trigger }: { trigger: React.ReactNode }) {
                           items: state.items.map((i) => ({ productId: i.id, quantity: i.qty })),
                           shipping: { addressLine: addressLineForApi, city: city.trim(), state: uf.trim() },
                           couponCode: appliedCoupon?.code ?? null,
+                          ...(!isAuthenticated && {
+                            guestName: guestName.trim(),
+                            guestEmail: guestEmail.trim().toLowerCase(),
+                            guestPhone: guestPhone.trim() || undefined,
+                          }),
                         });
+                        if (checkout.guestToken) {
+                          localStorage.setItem(
+                            `kitcerto:checkout:${checkout.orderId}`,
+                            JSON.stringify({ guestToken: checkout.guestToken })
+                          );
+                        }
                         dispatch({ type: "clear" });
                         notify({ title: "Checkout criado", description: "Redirecionando para pagamento…", variant: "success" });
                         window.location.href = checkout.checkoutUrl;

@@ -42,6 +42,17 @@ export async function createOrderCheckout(payload: {
   items: { productId: string; quantity: number }[];
   shipping?: OrderShipping;
   couponCode?: string | null;
-}): Promise<{ orderId: string; totalAmount: number; currency: string; checkoutUrl: string }> {
+  guestName?: string;
+  guestEmail?: string;
+  guestPhone?: string;
+}): Promise<{ orderId: string; totalAmount: number; currency: string; checkoutUrl: string; guestToken?: string | null }> {
   return apiPost(`/orders/checkout`, payload);
+}
+
+/** Consulta status de pedido de convidado sem autenticação. */
+export async function getGuestOrderStatus(
+  orderId: string,
+  token: string
+): Promise<{ id: string; status: string; totalAmount: number; currency: string }> {
+  return apiGet(`/orders/guest/${orderId}?token=${encodeURIComponent(token)}`);
 }
