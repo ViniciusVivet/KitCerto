@@ -65,9 +65,9 @@ builder.Services.AddCors(options =>
                   .AllowAnyMethod()
                   .AllowCredentials();
         }
-        else
+        else if (builder.Environment.IsDevelopment())
         {
-            // fallback DEV
+            // fallback apenas em desenvolvimento local — nunca em produção
             policy.AllowAnyOrigin()
                   .AllowAnyHeader()
                   .AllowAnyMethod();
