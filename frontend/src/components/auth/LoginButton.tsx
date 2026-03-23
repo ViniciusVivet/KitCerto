@@ -2,26 +2,15 @@
 
 import { useAuth } from '@/context/auth';
 import { Button } from '@/components/ui/button';
-import { LogIn, LogOut, User } from 'lucide-react';
+import { LogIn, LogOut } from 'lucide-react';
 
 export const LoginButton = () => {
-  const { isAuthenticated, isLoading, user, login, logout, register } = useAuth();
+  const { isAuthenticated, isLoading, isReady, user, login, logout, register } = useAuth();
 
-  // Enquanto o Keycloak inicializa, exibe os botões desabilitados no lugar do
-  // "Carregando..." — evita layout shift e a UI aparece imediatamente.
-  if (isLoading) {
-    return (
-      <div className="flex items-center gap-2">
-        <Button disabled>
-          <LogIn className="h-4 w-4 mr-2" />
-          Entrar
-        </Button>
-        <Button variant="secondary" disabled>
-          Registrar
-        </Button>
-      </div>
-    );
-  }
+  // Botões visíveis imediatamente, desabilitados enquanto:
+  // - isLoading: timeout de 3s ainda não expirou
+  // - !isReady: keycloak.init() ainda não concluiu (evita erro se clicar antes da hora)
+  const buttonsDisabled = isLoading || !isReady;
 
   if (isAuthenticated && user) {
     return (
@@ -39,11 +28,11 @@ export const LoginButton = () => {
 
   return (
     <div className="flex items-center gap-2">
-      <Button onClick={login}>
+      <Button onClick={login} disabled={buttonsDisabled}>
         <LogIn className="h-4 w-4 mr-2" />
         Entrar
       </Button>
-      <Button variant="secondary" onClick={register}>
+      <Button variant="secondary" onClick={register} disabled={buttonsDisabled}>
         Registrar
       </Button>
     </div>

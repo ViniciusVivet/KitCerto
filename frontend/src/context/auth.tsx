@@ -14,6 +14,8 @@ interface User {
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
+  // true somente após keycloak.init() completar — guarda as funções de login/register
+  isReady: boolean;
   user: User | null;
   token: string | null;
   login: () => void;
@@ -41,6 +43,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReady, setIsReady] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
 
@@ -56,6 +59,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         // Inicializar Keycloak
         const authenticated = await initKeycloak();
         clearTimeout(timeoutId);
+        setIsReady(true); // keycloak.init() concluído — funções de login/register agora são seguras
         
         if (authenticated) {
           setIsAuthenticated(true);
@@ -114,10 +118,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }, []);
 
   const handleLogin = () => {
+    // Ignora clique se o Keycloak ainda não terminou de inicializar.
+    // Evita erro "Keycloak not initialized" na janela entre o timeout de 3s
+    // e a resposta real do servidor.
+    if (!isReady) return;
     login();
   };
 
   const handleRegister = () => {
+    if (!isReady) return;
     register();
   };
 
@@ -140,6 +149,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const value: AuthContextType = {
     isAuthenticated,
     isLoading,
+    isReady,
     user,
     token,
     login: handleLogin,
