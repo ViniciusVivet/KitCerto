@@ -155,7 +155,10 @@ namespace KitCerto.API.Controllers
 
         /// <summary>Listar produtos com estoque abaixo do limite</summary>
         [HttpGet("low-stock")]
+        [Authorize(Roles = "admin")]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public async Task<IActionResult> LowStock([FromQuery] int threshold = 10, CancellationToken ct = default)
         {
             var items = await _mediator.Send(new ListLowStockProductsQuery(threshold), ct);
