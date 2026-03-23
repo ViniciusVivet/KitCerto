@@ -60,7 +60,17 @@ export default function OrdersPage() {
     { value: "rejected", label: "Rejeitado" },
   ];
 
-  const { data: orders, isLoading } = useQuery({ queryKey: ["orders"], queryFn: () => listOrders() });
+  // Faz polling a cada 15s enquanto houver pedido pendente ou em processamento
+  const { data: orders, isLoading } = useQuery({
+    queryKey: ["orders"],
+    queryFn: () => listOrders(),
+    refetchInterval: (data) => {
+      const hasPending = (data ?? []).some((o) =>
+        ["pending", "pending_payment", "processing"].includes(o.status)
+      );
+      return hasPending ? 15_000 : false;
+    },
+  });
   const { dispatch } = useCart();
   const { notify } = useToast();
 
